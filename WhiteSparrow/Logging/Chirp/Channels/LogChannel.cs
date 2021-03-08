@@ -4,22 +4,23 @@ using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging
 {
-
 	public class LogChannel : IEquatable<LogChannel>, IEquatable<string>
 	{
 		public readonly string id;
 		public readonly string name;
 		public readonly Color color;
+
+		public bool isFallback = false;
 		
-		public LogChannel(string id) : this(id, CreateColorHash(id))
+		public LogChannel(string name) : this(name, CreateColorHash(name))
 		{
 			
 		}
-
-		public LogChannel(string id, Color color)
+		
+		public LogChannel(string name, Color color)
 		{
-			this.id = id.ToLower();
-			this.name = id;
+			this.id = name.ToLower();
+			this.name = name;
 			this.color = color;
 
 			RegisterChannel(this);
@@ -115,6 +116,30 @@ namespace WhiteSparrow.Shared.Logging
 			return s_IdList.Contains(id);
 		}
 		
+		#endregion
+
+		#region Type Registry
+
+		private static Dictionary<Type, LogChannel> s_TypeToInstanceMapping = new Dictionary<Type, LogChannel>();
+
+		public static LogChannel RegisterChannelTarget(Type type)
+		{
+			if (s_TypeToInstanceMapping.TryGetValue(type, out var existingChannel))
+				return existingChannel;
+
+			string channelName = type.Name;
+			LogChannel channel = Get(channelName);
+			s_TypeToInstanceMapping.Add(type, channel);
+			return channel;
+		}
+
+		public static LogChannel GetForTarget(Type type)
+		{
+			if (s_TypeToInstanceMapping.TryGetValue(type, out var existingChannel))
+				return existingChannel;
+			return null;
+		}
+
 		#endregion
 
 	}

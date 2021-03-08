@@ -66,7 +66,7 @@ namespace WhiteSparrow.Shared.Logging
 			
 			base.FormatString(stringBuilder, logEvent);
 			stringBuilder.Append(Environment.NewLine);
-			stringBuilder.AppendLine(CreateStackTrace(logEvent, 6));
+			stringBuilder.AppendLine(LoggingStackTraceUtil.FormatUnityStackTrace(logEvent.stackTrace));
 		}
 	}
 
@@ -76,7 +76,7 @@ namespace WhiteSparrow.Shared.Logging
 	/// </summary>
 	public class UnityLoggerHandler : ILogHandler
 	{
-		private static LogChannel s_LogChannel = "Unity";
+		private static LogChannel s_LogChannel = new LogChannel("Unity"){ isFallback = true };
 		
 		public void LogFormat(LogType logType, Object context, string format, params object[] args)
 		{

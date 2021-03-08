@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Text;
-using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -29,16 +27,5 @@ namespace WhiteSparrow.Shared.Logging
 				stringBuilder.Append(message);
 		}
 
-		protected string CreateStackTrace(LogEvent logEvent, int skipFrames = 3)
-		{
-			if (logEvent.exception != null)
-			{
-				return StackTraceUtility.ExtractStringFromException(logEvent.exception);
-			}
-
-			return LoggingStackTraceUtil.FormatUnityStackTrace(new StackTrace(skipFrames, true));
-		}
-		
-		
 	}
 }

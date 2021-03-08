@@ -23,8 +23,6 @@ namespace WhiteSparrow.Shared.Logging
 
 		private static string s_ProjectPath;
 		
-		
-
 		public static string FormatUnityStackTrace(StackTrace stackTrace)
 		{
 			StringBuilder stringBuilder = s_StackTraceBuilder;

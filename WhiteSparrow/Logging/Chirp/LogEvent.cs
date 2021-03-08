@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -10,5 +11,7 @@ namespace WhiteSparrow.Shared.Logging
 
 		public object[] messages;
 		public Exception exception;
+
+		public StackTrace stackTrace;
 	}
 }
