@@ -9,46 +9,56 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public class LogChannelCompiler
 	{
+		private const string DialogTitle = "Chirp: LogChannels Generator";
 		
 		private const string ListTemplate = @"
-public class ListTemplate : WhiteSparrow.Shared.Logging.AbstractLogChannelList
+namespace WhiteSparrow.Shared.Logging
 {
-	[UnityEngine.RuntimeInitializeOnLoadMethod]
-	private static void RuntimeInitializeOnLoad()
+	public class ${CLASS_NAME} : WhiteSparrow.Shared.Logging.AbstractLogChannelList
 	{
-		WhiteSparrow.Shared.Logging.LogChannel.RegisterChannelTarget(s_ChannelList);
-	}
+		[UnityEngine.RuntimeInitializeOnLoadMethod]
+		private static void RuntimeInitializeOnLoad()
+		{
+			WhiteSparrow.Shared.Logging.LogChannel.RegisterChannelTarget(s_ChannelList);
+		}
 
-	private static readonly System.Type[] s_ChannelList = new System.Type[]
-	{
-${TYPE_LIST}
-	};
-	
-	public override System.Type[] GetChannelList()
-	{
-		return s_ChannelList;
+		private static readonly System.Type[] s_ChannelList = new System.Type[]
+		{
+	${TYPE_LIST}
+		};
+		
+		public override System.Type[] GetChannelList()
+		{
+			return s_ChannelList;
+		}
 	}
 }
 ";
 
 
-		[MenuItem("Tools/Chirp/Attempt the thing")]
-		public static void Attempt()
+		[MenuItem("Tools/Chirp Logger/Generate Log Channels List", priority = 300)]
+		public static void GenerateLogChannelsList()
 		{
 			var typesForGeneration = TypeCache.GetTypesWithAttribute<LogChannelAttribute>();
-			// get all existing items
 			var existingItems = FindExistingLogChannelsList(out var indexedChannels);
 
 			if (typesForGeneration.Count == 0 && existingItems.Length == 0)
+			{
+				EditorUtility.DisplayDialog(DialogTitle, "No Types marked as LogChannels found", "Ok");
 				return;
+			}
 
+			FileInfo outputFileInfo = null;
 			if (existingItems.Length == 1)
 			{
 				if (TypeListCompare(typesForGeneration, indexedChannels))
 				{
-					Debug.Log("Type list match, generation skipped");
+					EditorUtility.DisplayDialog(DialogTitle,
+						$"The generated list is correct. No changes needed.\npath: {existingItems[0].Item2}", "Ok");
 					return;
 				}
+
+				outputFileInfo = new FileInfo(existingItems[0].Item2);
 			}
 
 			foreach (var existingItem in existingItems)
@@ -56,13 +66,26 @@ ${TYPE_LIST}
 				AssetDatabase.DeleteAsset(existingItem.Item2);
 			}
 
-			if (typesForGeneration.Count > 0)
+			if (typesForGeneration.Count == 0)
 			{
-				GenerateFile(typesForGeneration);
+				EditorUtility.DisplayDialog(DialogTitle, "No Types marked as LogChannels found", "Ok");
+				return;
 			}
 
+			if (outputFileInfo == null)
+			{
+				string selectedPath = EditorUtility.SaveFilePanelInProject("Chirp: Select LogChannel list location.", "LogChannelList", "cs","Select location for the generated LogChannels list.");
+				if (string.IsNullOrWhiteSpace(selectedPath))
+					return;
+
+				outputFileInfo = new FileInfo(selectedPath);
+			}
+			
+			GenerateFile(outputFileInfo, typesForGeneration);
+			
 
 		}
+		
 
 
 		private static Tuple<Type, string>[] FindExistingLogChannelsList(out HashSet<Type> indexedTypes)
@@ -103,17 +126,16 @@ ${TYPE_LIST}
 		}
 		
 		
-		private static void GenerateFile(TypeCache.TypeCollection typeList)
+		private static void GenerateFile(FileInfo fileInfo, TypeCache.TypeCollection typeList)
 		{
 			StringBuilder typeListBuilder = new StringBuilder();
 			foreach (var type in typeList)
 			{
-				typeListBuilder.AppendLine($"		typeof({type.FullName}),");
+				typeListBuilder.AppendLine($"			typeof({type.FullName}),");
 			}
 			
-			string content = ListTemplate.Replace("${TYPE_LIST}", typeListBuilder.ToString());
-			FileInfo targetFile = new FileInfo(Path.Combine(Application.dataPath,"Scripts/ListTemplate.cs"));
-			File.WriteAllText(targetFile.FullName, content);
+			string content = ListTemplate.Replace("${TYPE_LIST}", typeListBuilder.ToString()).Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""));
+			File.WriteAllText(fileInfo.FullName, content);
 			
 			AssetDatabase.Refresh();
 		}
