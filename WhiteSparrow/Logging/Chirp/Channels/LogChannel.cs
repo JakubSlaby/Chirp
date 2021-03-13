@@ -133,6 +133,14 @@ namespace WhiteSparrow.Shared.Logging
 			return channel;
 		}
 
+		public static void RegisterChannelTarget(IEnumerable<Type> types)
+		{
+			foreach (var type in types)
+			{
+				RegisterChannelTarget(type);
+			}
+		}
+
 		public static LogChannel GetForTarget(Type type)
 		{
 			if (s_TypeToInstanceMapping.TryGetValue(type, out var existingChannel))

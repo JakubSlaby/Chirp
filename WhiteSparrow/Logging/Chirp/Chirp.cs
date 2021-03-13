@@ -195,7 +195,7 @@ namespace WhiteSparrow.Shared.Logging
 		{
 			if (s_Loggers == null || s_Loggers.Length == 0)
 			{
-				#if UNITY_EDITOR 
+				#if UNITY_EDITOR
 				UnityEngine.Debug.LogError("Attempting to use Chirp logger with no Loggers. Call Chirp.Initialize() before using.");
 				#endif
 				
