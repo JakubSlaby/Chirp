@@ -8,24 +8,23 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public static class LoggingStackTraceUtil
 	{
-		[ThreadStatic]
-		private static StringBuilder s_StackTraceBuilder = new StringBuilder();
+		[ThreadStatic] private static readonly StringBuilder s_StackTraceBuilder = new StringBuilder();
+
+		private static string s_ProjectPath;
 
 		[RuntimeInitializeOnLoadMethod]
 		private static void InitializeOnLoad()
 		{
 			s_ProjectPath = Application.dataPath;
-			int i = s_ProjectPath.LastIndexOf("Assets");
+			var i = s_ProjectPath.LastIndexOf("Assets");
 			if (i != -1)
 				s_ProjectPath = s_ProjectPath.Substring(0, i);
 			s_ProjectPath = s_ProjectPath.Replace('/', Path.DirectorySeparatorChar);
 		}
 
-		private static string s_ProjectPath;
-		
 		public static string FormatUnityStackTrace(StackTrace stackTrace)
 		{
-			StringBuilder stringBuilder = s_StackTraceBuilder;
+			var stringBuilder = s_StackTraceBuilder;
 			stringBuilder.Clear();
 			for (var index1 = 0; index1 < stackTrace.FrameCount; ++index1)
 			{
@@ -62,15 +61,15 @@ namespace WhiteSparrow.Shared.Logging
 						stringBuilder.Append(")");
 						var str2 = frame.GetFileName();
 						if (str2 != null &&
-							(!(declaringType.Name == "Debug") || !(declaringType.Namespace == "UnityEngine")) &&
-							(!(declaringType.Name == "Logger") || !(declaringType.Namespace == "UnityEngine")) &&
-							(!(declaringType.Name == "DebugLogHandler") ||
-							 !(declaringType.Namespace == "UnityEngine")) &&
-							(!(declaringType.Name == "Assert") ||
-							 !(declaringType.Namespace == "UnityEngine.Assertions")) &&
-							(!(method.Name == "print") ||
-							 !(declaringType.Name == "MonoBehaviour") ||
-							 !(declaringType.Namespace == "UnityEngine")))
+						    (!(declaringType.Name == "Debug") || !(declaringType.Namespace == "UnityEngine")) &&
+						    (!(declaringType.Name == "Logger") || !(declaringType.Namespace == "UnityEngine")) &&
+						    (!(declaringType.Name == "DebugLogHandler") ||
+						     !(declaringType.Namespace == "UnityEngine")) &&
+						    (!(declaringType.Name == "Assert") ||
+						     !(declaringType.Namespace == "UnityEngine.Assertions")) &&
+						    (!(method.Name == "print") ||
+						     !(declaringType.Name == "MonoBehaviour") ||
+						     !(declaringType.Namespace == "UnityEngine")))
 						{
 							stringBuilder.Append(" (at ");
 							if (str2.StartsWith(s_ProjectPath))

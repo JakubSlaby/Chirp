@@ -6,12 +6,12 @@ namespace WhiteSparrow.Shared.Logging
 	public class LogEvent
 	{
 		public LogChannel channel;
+		public Exception exception;
 		public LogLevel level;
-		public DateTime timeStamp;
 
 		public object[] messages;
-		public Exception exception;
 
 		public StackTrace stackTrace;
+		public DateTime timeStamp;
 	}
 }

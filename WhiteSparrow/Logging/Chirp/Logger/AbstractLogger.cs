@@ -5,8 +5,7 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public abstract class AbstractLogger : ILogger
 	{
-		[ThreadStatic]
-		private readonly StringBuilder m_StringBuilder = new StringBuilder();
+		[ThreadStatic] private readonly StringBuilder m_StringBuilder = new StringBuilder();
 
 		public abstract void Initialise();
 
@@ -23,9 +22,8 @@ namespace WhiteSparrow.Shared.Logging
 
 		protected virtual void FormatString(StringBuilder stringBuilder, LogEvent logEvent)
 		{
-			foreach (var message in logEvent.messages) 
+			foreach (var message in logEvent.messages)
 				stringBuilder.Append(message);
 		}
-
 	}
 }

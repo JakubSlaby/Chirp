@@ -7,7 +7,11 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public static class ChirpDevelopment
 	{
-		private static string s_RootFilePathCache = null;
+		private static string s_RootFilePathCache;
+
+		private static string s_ChirpRepositoryRootCache;
+
+		private static DirectoryInfo s_DataPathDirectoryCache;
 
 		private static string RootFilePath
 		{
@@ -15,12 +19,14 @@ namespace WhiteSparrow.Shared.Logging
 			{
 				if (s_RootFilePathCache == null)
 				{
-					string[] search = AssetDatabase.FindAssets("ChirpDevelopmentRoot");
+					var search = AssetDatabase.FindAssets("ChirpDevelopmentRoot");
 					if (search.Length == 0)
-						throw new Exception("Unable to find ChirpDevelopmentRoot file. The repository structure is corrupted.");
-					if(search.Length > 1)
-						throw new Exception("Found more than one ChirpDevelopmentRoot file. The repository structure is corrupted.");
-					FileInfo rootFile = new FileInfo(AssetDatabase.GUIDToAssetPath(search[0]));
+						throw new Exception(
+							"Unable to find ChirpDevelopmentRoot file. The repository structure is corrupted.");
+					if (search.Length > 1)
+						throw new Exception(
+							"Found more than one ChirpDevelopmentRoot file. The repository structure is corrupted.");
+					var rootFile = new FileInfo(AssetDatabase.GUIDToAssetPath(search[0]));
 					s_RootFilePathCache = rootFile.Directory.FullName;
 				}
 
@@ -28,21 +34,15 @@ namespace WhiteSparrow.Shared.Logging
 			}
 		}
 
-		private static string s_ChirpRepositoryRootCache = null;
 		public static string ChirpRepositoryRoot
 		{
 			get
 			{
-				if (s_ChirpRepositoryRootCache == null)
-				{
-					s_ChirpRepositoryRootCache = RootFilePath + "/../../";
-				}
+				if (s_ChirpRepositoryRootCache == null) s_ChirpRepositoryRootCache = RootFilePath + "/../../";
 
 				return s_ChirpRepositoryRootCache;
 			}
 		}
-
-		private static DirectoryInfo s_DataPathDirectoryCache;
 
 		private static DirectoryInfo DataPathDirectory
 		{
@@ -53,10 +53,10 @@ namespace WhiteSparrow.Shared.Logging
 				return s_DataPathDirectoryCache;
 			}
 		}
-		
+
 		public static string MakePathRelative(string input)
 		{
-			int l = 0;
+			var l = 0;
 			if (input.IndexOf(Path.DirectorySeparatorChar) != -1)
 			{
 				if (input.IndexOf(DataPathDirectory.FullName, StringComparison.Ordinal) == 0)
@@ -70,9 +70,9 @@ namespace WhiteSparrow.Shared.Logging
 
 			if (l == 0)
 				return input;
-			
-			
-			string output = "Assets" + input.Substring(l, input.Length - l);
+
+
+			var output = "Assets" + input.Substring(l, input.Length - l);
 			return output.Replace("\\", "/").TrimEnd('/');
 		}
 	}

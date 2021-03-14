@@ -6,20 +6,19 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public class LogChannel : IEquatable<LogChannel>, IEquatable<string>
 	{
+		public readonly Color color;
 		public readonly string id;
 		public readonly string name;
-		public readonly Color color;
 
 		public bool isFallback = false;
-		
+
 		public LogChannel(string name) : this(name, CreateColorHash(name))
 		{
-			
 		}
-		
+
 		public LogChannel(string name, Color color)
 		{
-			this.id = name.ToLower();
+			id = name.ToLower();
 			this.name = name;
 			this.color = color;
 
@@ -28,21 +27,19 @@ namespace WhiteSparrow.Shared.Logging
 
 		private static Color CreateColorHash(string id)
 		{
-			char[] characters = id.ToCharArray();
+			var characters = id.ToCharArray();
 			double hash = 0;
-			for (int i = 0; i < characters.Length; i++)
-			{
-				hash = char.GetNumericValue(characters[i]) + (((int)hash << 5) - hash);
-			}
+			for (var i = 0; i < characters.Length; i++)
+				hash = char.GetNumericValue(characters[i]) + (((int) hash << 5) - hash);
 
-			float h = (float)hash % 200;
-			float v = (float)hash % 240;
-			
-			return Color.HSVToRGB(Mathf.Abs(h)/200f, 
-								  0.9f, 
-								  Mathf.Clamp(Mathf.Abs(v)/240f, 0.7f, 1f));
+			var h = (float) hash % 200;
+			var v = (float) hash % 240;
+
+			return Color.HSVToRGB(Mathf.Abs(h) / 200f,
+				0.9f,
+				Mathf.Clamp(Mathf.Abs(v) / 240f, 0.7f, 1f));
 		}
-	
+
 		// custom operator to use string id for easy assignment
 		public static implicit operator LogChannel(string logChannel)
 		{
@@ -76,15 +73,17 @@ namespace WhiteSparrow.Shared.Logging
 
 		public override int GetHashCode()
 		{
-			return (id != null ? id.GetHashCode() : 0);
+			return id != null ? id.GetHashCode() : 0;
 		}
 
 		#endregion
 
 		#region Static Registry
 
-		private static Dictionary<string, LogChannel> s_IdToInstanceMapping = new Dictionary<string, LogChannel>();
-		private static List<string> s_IdList = new List<string>();
+		private static readonly Dictionary<string, LogChannel> s_IdToInstanceMapping =
+			new Dictionary<string, LogChannel>();
+
+		private static readonly List<string> s_IdList = new List<string>();
 		private static string[] s_IdListCache;
 
 		private void RegisterChannel(LogChannel channel)
@@ -100,7 +99,7 @@ namespace WhiteSparrow.Shared.Logging
 		{
 			if (s_IdToInstanceMapping.TryGetValue(id, out var channel))
 				return channel;
-			
+
 			return new LogChannel(id);
 		}
 
@@ -115,30 +114,28 @@ namespace WhiteSparrow.Shared.Logging
 		{
 			return s_IdList.Contains(id);
 		}
-		
+
 		#endregion
 
 		#region Type Registry
 
-		private static Dictionary<Type, LogChannel> s_TypeToInstanceMapping = new Dictionary<Type, LogChannel>();
+		private static readonly Dictionary<Type, LogChannel> s_TypeToInstanceMapping =
+			new Dictionary<Type, LogChannel>();
 
 		public static LogChannel RegisterChannelTarget(Type type)
 		{
 			if (s_TypeToInstanceMapping.TryGetValue(type, out var existingChannel))
 				return existingChannel;
 
-			string channelName = type.Name;
-			LogChannel channel = Get(channelName);
+			var channelName = type.Name;
+			var channel = Get(channelName);
 			s_TypeToInstanceMapping.Add(type, channel);
 			return channel;
 		}
 
 		public static void RegisterChannelTarget(IEnumerable<Type> types)
 		{
-			foreach (var type in types)
-			{
-				RegisterChannelTarget(type);
-			}
+			foreach (var type in types) RegisterChannelTarget(type);
 		}
 
 		public static LogChannel GetForTarget(Type type)
@@ -149,8 +146,5 @@ namespace WhiteSparrow.Shared.Logging
 		}
 
 		#endregion
-
 	}
-	
-	
 }

@@ -4,13 +4,14 @@ using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace WhiteSparrow.Shared.Logging
 {
 	public class LogChannelCompiler
 	{
 		private const string DialogTitle = "Chirp: LogChannels Generator";
-		
+
 		private const string ListTemplate = @"
 namespace WhiteSparrow.Shared.Logging
 {
@@ -61,10 +62,7 @@ namespace WhiteSparrow.Shared.Logging
 				outputFileInfo = new FileInfo(existingItems[0].Item2);
 			}
 
-			foreach (var existingItem in existingItems)
-			{
-				AssetDatabase.DeleteAsset(existingItem.Item2);
-			}
+			foreach (var existingItem in existingItems) AssetDatabase.DeleteAsset(existingItem.Item2);
 
 			if (typesForGeneration.Count == 0)
 			{
@@ -74,16 +72,16 @@ namespace WhiteSparrow.Shared.Logging
 
 			if (outputFileInfo == null)
 			{
-				string selectedPath = EditorUtility.SaveFilePanelInProject("Chirp: Select LogChannel list location.", "LogChannelList", "cs","Select location for the generated LogChannels list.");
+				var selectedPath = EditorUtility.SaveFilePanelInProject("Chirp: Select LogChannel list location.",
+					"LogChannelList", "cs", "Select location for the generated LogChannels list.");
 				if (string.IsNullOrWhiteSpace(selectedPath))
 					return;
 
 				outputFileInfo = new FileInfo(selectedPath);
 			}
-			
+
 			GenerateFile(outputFileInfo, typesForGeneration);
 		}
-		
 
 
 		private static Tuple<Type, string>[] FindExistingLogChannelsList(out HashSet<Type> indexedTypes)
@@ -93,48 +91,44 @@ namespace WhiteSparrow.Shared.Logging
 			if (existingListTypes.Count == 0)
 				return Array.Empty<Tuple<Type, string>>();
 
-			List<Tuple<Type, string>> output = new List<Tuple<Type, string>>();
+			var output = new List<Tuple<Type, string>>();
 			foreach (var type in existingListTypes)
 			{
 				var scriptableObject = ScriptableObject.CreateInstance(type);
 				scriptableObject.hideFlags = HideFlags.HideAndDontSave;
 				var monoScript = MonoScript.FromScriptableObject(scriptableObject);
-				string path = AssetDatabase.GetAssetPath(monoScript);
+				var path = AssetDatabase.GetAssetPath(monoScript);
 				if (string.IsNullOrEmpty(path))
 				{
-					Debug.LogError($"Chirp: LogChannel List generation found type {type.FullName} for replacement when generating, but couldn't find the file path. It's possible that the file name is not the same as the Type name.");
+					Debug.LogError(
+						$"Chirp: LogChannel List generation found type {type.FullName} for replacement when generating, but couldn't find the file path. It's possible that the file name is not the same as the Type name.");
 					continue;
 				}
 
 				if (scriptableObject is AbstractLogChannelList logChannelList)
 				{
 					var indexedChannels = logChannelList.GetChannelList();
-					foreach (var channel in indexedChannels)
-					{
-						indexedTypes.Add(channel);
-					}
+					foreach (var channel in indexedChannels) indexedTypes.Add(channel);
 				}
-				
-				ScriptableObject.DestroyImmediate(scriptableObject, true);
-				
-				output.Add(Tuple.Create<Type, string>(type, path));
+
+				Object.DestroyImmediate(scriptableObject, true);
+
+				output.Add(Tuple.Create(type, path));
 			}
 
 			return output.ToArray();
 		}
-		
-		
+
+
 		private static void GenerateFile(FileInfo fileInfo, TypeCache.TypeCollection typeList)
 		{
-			StringBuilder typeListBuilder = new StringBuilder();
-			foreach (var type in typeList)
-			{
-				typeListBuilder.AppendLine($"			typeof({type.FullName}),");
-			}
-			
-			string content = ListTemplate.Replace("${TYPE_LIST}", typeListBuilder.ToString()).Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""));
+			var typeListBuilder = new StringBuilder();
+			foreach (var type in typeList) typeListBuilder.AppendLine($"			typeof({type.FullName}),");
+
+			var content = ListTemplate.Replace("${TYPE_LIST}", typeListBuilder.ToString())
+				.Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""));
 			File.WriteAllText(fileInfo.FullName, content);
-			
+
 			AssetDatabase.Refresh();
 		}
 
@@ -144,13 +138,10 @@ namespace WhiteSparrow.Shared.Logging
 				return false;
 
 			foreach (var type in typeCandidates)
-			{
 				if (!typesRegistered.Contains(type))
 					return false;
-			}
-			
+
 			return true;
 		}
-		
 	}
 }

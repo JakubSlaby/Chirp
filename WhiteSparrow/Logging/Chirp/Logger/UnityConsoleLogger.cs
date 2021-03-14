@@ -6,13 +6,13 @@ using Object = UnityEngine.Object;
 namespace WhiteSparrow.Shared.Logging
 {
 	/// <summary>
-	/// Default logger for synchronising with the Unity Console.
-	/// Intercepts any messages from Debug.Log calls and processes them through the Chirp framework.
+	///     Default logger for synchronising with the Unity Console.
+	///     Intercepts any messages from Debug.Log calls and processes them through the Chirp framework.
 	/// </summary>
 	public class UnityConsoleLogger : AbstractLogger
 	{
 		private ILogHandler m_DefaultUnityLogHandler;
-		
+
 		public override void Initialise()
 		{
 			m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
@@ -28,12 +28,13 @@ namespace WhiteSparrow.Shared.Logging
 			if (m_DefaultUnityLogHandler != null)
 			{
 				Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
-				
+
 				Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.Full);
 				Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.Full);
 				Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.Full);
 				Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.Full);
 			}
+
 			m_DefaultUnityLogHandler = null;
 		}
 
@@ -45,13 +46,10 @@ namespace WhiteSparrow.Shared.Logging
 		public override void Append(LogEvent logEvent)
 		{
 			if (logEvent.level == LogLevel.Exception && logEvent.exception != null)
-			{
 				m_DefaultUnityLogHandler.LogException(logEvent.exception, null);
-			}
 			else
-			{
-				m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.level), null, CreateString(logEvent));
-			}
+				m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.level), null,
+					CreateString(logEvent));
 		}
 
 		protected override void FormatString(StringBuilder stringBuilder, LogEvent logEvent)
@@ -63,7 +61,7 @@ namespace WhiteSparrow.Shared.Logging
 				stringBuilder.Append(']');
 				stringBuilder.Append(' ');
 			}
-			
+
 			base.FormatString(stringBuilder, logEvent);
 			stringBuilder.Append(Environment.NewLine);
 			stringBuilder.AppendLine(LoggingStackTraceUtil.FormatUnityStackTrace(logEvent.stackTrace));
@@ -71,13 +69,13 @@ namespace WhiteSparrow.Shared.Logging
 	}
 
 	/// <summary>
-	/// Overwrite Log Handler for intercepting Unity Debug.Log messages.
-	/// Forwards them in to Chirp assigning default channel of "Unity"
+	///     Overwrite Log Handler for intercepting Unity Debug.Log messages.
+	///     Forwards them in to Chirp assigning default channel of "Unity"
 	/// </summary>
 	public class UnityLoggerHandler : ILogHandler
 	{
-		private static LogChannel s_LogChannel = new LogChannel("Unity"){ isFallback = true };
-		
+		private static readonly LogChannel s_LogChannel = new LogChannel("Unity") {isFallback = true};
+
 		public void LogFormat(LogType logType, Object context, string format, params object[] args)
 		{
 			Chirp.AddLog(s_LogChannel, UnityLogUtil.FromUnityLogType(logType), string.Format(format, args));
