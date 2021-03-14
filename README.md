@@ -7,6 +7,10 @@ Simple Unity logging framework easily exandable for custom functionality
 - Customisable Loggers allow for custom processing
 - Default Unity console integration
 
+## Installation
+Best way to install Chirp is to download the latest package from [Releases](/releases), full souce code is included in the UnityPackage.
+Import the package in to your Unity project through Assets/Import Package/Custom Package.
+
 ## Usage
 Chirp Logger hooks up to the default unity `Debug.Log` methods but also allows you to use it's dedicated API.
 To start using Chirp, initialise it with the desired Loggers.
@@ -14,11 +18,10 @@ To start using Chirp, initialise it with the desired Loggers.
 > Examples use an additional integration with AssetStore packages: [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-128881), [SRDebugger](https://assetstore.unity.com/packages/tools/gui/srdebugger-console-tools-on-device-27688)
 
 ### Initialisation
-Call the initialise method at the beginning of your runtime code and add `LogLevelDebug` to ProjectSettings/Player/Script Define Symbols (read more about Conditional Compilation).
+Call the initialise method at the beginning of your runtime code and add `LogLevelDebug` to ProjectSettings/Player/Script Define Symbols (read more about [Conditional Compilation](#Conditional-Compilation)).
 ```csharp
 Chirp.Initialise(new UnityConsoleLogger(), new QuantumConsoleLogger());
 ```
-
 
 ### Logging
 The default log API with simple message and stack trace functionality.
@@ -94,6 +97,8 @@ Thanks to it's simple structure Chirp Logging is highly customisable. Most exten
 ### Quantum Console Integration
 I have prepared additional integration with Quantum Console allowing for more detailed information, filtering and search. The full upgrade instructions will be published soon.
 
+## Contributing
+If you find any issues or think there are missing features that could benefit the package please use [GitHub Issues](/issues) to report any bugs or ideas.
 
 <p align="right">
   <a href="https://www.twitch.tv/sparrowgamedev">

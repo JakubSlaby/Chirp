@@ -1,7 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Text;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -18,24 +20,53 @@ namespace WhiteSparrow.Shared.Logging
 	
 	public static class Chirp
 	{
+		public const string Version = "0.7"; 
+		
 		private static ILogger[] s_Loggers;
 		
 		public static void Initialize(params ILogger[] loggers)
 		{
-			if (loggers == null)
+			if (loggers == null || loggers.Length == 0)
 				return;
 
-			Logging.Chirp.s_Loggers = loggers;
-			
-			List<ILogger> logs = new List<ILogger>();
-			
-			
+			s_Loggers = loggers;
+
 			foreach (var logger in s_Loggers)
 				logger.Initialise();
+
+			Debug($"Chirp v{Version} Initialised.\nIncluded Loggers: {ToStringLoggers()}");
+			
+#if UNITY_EDITOR
+			EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+			EditorApplication.playModeStateChanged += OnPlayModeChanged;
+#endif
 		}
+
+		private static string ToStringLoggers()
+		{
+			StringBuilder outputListOfLoggers = new StringBuilder();
+			foreach (var logger in s_Loggers)
+			{
+				outputListOfLoggers.AppendLine(logger.GetType().Name);
+			}
+
+			return outputListOfLoggers.ToString();
+		}
+#if UNITY_EDITOR
+		private static void OnPlayModeChanged(PlayModeStateChange obj)
+		{
+			if(obj == PlayModeStateChange.ExitingPlayMode)
+				Destroy();
+		}
+#endif
 
 		public static void Destroy()
 		{
+			Info("Destroy");
+#if UNITY_EDITOR
+			EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+#endif
+			
 			foreach (var logger in s_Loggers)
 			{
 				logger.Destroy();

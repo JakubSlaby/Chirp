@@ -82,8 +82,6 @@ namespace WhiteSparrow.Shared.Logging
 			}
 			
 			GenerateFile(outputFileInfo, typesForGeneration);
-			
-
 		}
 		
 
