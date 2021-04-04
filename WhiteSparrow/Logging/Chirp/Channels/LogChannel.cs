@@ -46,7 +46,7 @@ namespace WhiteSparrow.Shared.Logging
 			return Get(logChannel);
 		}
 
-		#region Comparison
+#region Comparison
 
 		public bool Equals(LogChannel other)
 		{
@@ -76,9 +76,9 @@ namespace WhiteSparrow.Shared.Logging
 			return id != null ? id.GetHashCode() : 0;
 		}
 
-		#endregion
+#endregion
 
-		#region Static Registry
+#region Static Registry
 
 		private static readonly Dictionary<string, LogChannel> s_IdToInstanceMapping =
 			new Dictionary<string, LogChannel>();
@@ -115,9 +115,9 @@ namespace WhiteSparrow.Shared.Logging
 			return s_IdList.Contains(id);
 		}
 
-		#endregion
+#endregion
 
-		#region Type Registry
+#region Type Registry
 
 		private static readonly Dictionary<Type, LogChannel> s_TypeToInstanceMapping =
 			new Dictionary<Type, LogChannel>();
@@ -145,6 +145,6 @@ namespace WhiteSparrow.Shared.Logging
 			return null;
 		}
 
-		#endregion
+#endregion
 	}
 }

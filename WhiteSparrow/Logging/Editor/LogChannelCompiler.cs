@@ -126,7 +126,7 @@ namespace WhiteSparrow.Shared.Logging
 			foreach (var type in typeList) typeListBuilder.AppendLine($"			typeof({type.FullName}),");
 
 			var content = ListTemplate.Replace("${TYPE_LIST}", typeListBuilder.ToString())
-				.Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""));
+									  .Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""));
 			File.WriteAllText(fileInfo.FullName, content);
 
 			AssetDatabase.Refresh();

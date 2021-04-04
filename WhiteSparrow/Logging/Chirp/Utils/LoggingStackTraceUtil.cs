@@ -8,9 +8,20 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public static class LoggingStackTraceUtil
 	{
-		[ThreadStatic] private static readonly StringBuilder s_StackTraceBuilder = new StringBuilder();
+		[ThreadStatic]
+		private static StringBuilder s_StackTraceBuilderThreadStatic;
 
 		private static string s_ProjectPath;
+
+		private static StringBuilder s_StackTraceBuilder
+		{
+			get
+			{
+				if (s_StackTraceBuilderThreadStatic == null)
+					s_StackTraceBuilderThreadStatic = new StringBuilder();
+				return s_StackTraceBuilderThreadStatic;
+			}
+		}
 
 		[RuntimeInitializeOnLoadMethod]
 		private static void InitializeOnLoad()
@@ -61,15 +72,15 @@ namespace WhiteSparrow.Shared.Logging
 						stringBuilder.Append(")");
 						var str2 = frame.GetFileName();
 						if (str2 != null &&
-						    (!(declaringType.Name == "Debug") || !(declaringType.Namespace == "UnityEngine")) &&
-						    (!(declaringType.Name == "Logger") || !(declaringType.Namespace == "UnityEngine")) &&
-						    (!(declaringType.Name == "DebugLogHandler") ||
-						     !(declaringType.Namespace == "UnityEngine")) &&
-						    (!(declaringType.Name == "Assert") ||
-						     !(declaringType.Namespace == "UnityEngine.Assertions")) &&
-						    (!(method.Name == "print") ||
-						     !(declaringType.Name == "MonoBehaviour") ||
-						     !(declaringType.Namespace == "UnityEngine")))
+							(!(declaringType.Name == "Debug") || !(declaringType.Namespace == "UnityEngine")) &&
+							(!(declaringType.Name == "Logger") || !(declaringType.Namespace == "UnityEngine")) &&
+							(!(declaringType.Name == "DebugLogHandler") ||
+							 !(declaringType.Namespace == "UnityEngine")) &&
+							(!(declaringType.Name == "Assert") ||
+							 !(declaringType.Namespace == "UnityEngine.Assertions")) &&
+							(!(method.Name == "print") ||
+							 !(declaringType.Name == "MonoBehaviour") ||
+							 !(declaringType.Namespace == "UnityEngine")))
 						{
 							stringBuilder.Append(" (at ");
 							if (str2.StartsWith(s_ProjectPath))
