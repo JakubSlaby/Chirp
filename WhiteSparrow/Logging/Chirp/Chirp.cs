@@ -3,8 +3,9 @@ using System.Diagnostics;
 using System.Text;
 #if UNITY_EDITOR
 using UnityEditor;
-
 #endif
+
+
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -18,6 +19,8 @@ namespace WhiteSparrow.Shared.Logging
 		Error = 5,
 		Exception = 6
 	}
+
+			
 
 	public static class Chirp
 	{
@@ -69,91 +72,111 @@ namespace WhiteSparrow.Shared.Logging
 
 			s_Loggers = Array.Empty<ILogger>();
 		}
-
-
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
+		
+		
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Debug(params object[] message)
 		{
 			AddLog(null, LogLevel.Debug, message);
 		}
 
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void DebugCh(LogChannel channel, params object[] message)
 		{
 			AddLog(channel, LogLevel.Debug, message);
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Log(params object[] message)
 		{
 			AddLog(null, LogLevel.Log, message);
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void LogCh(LogChannel channel, params object[] message)
 		{
 			AddLog(channel, LogLevel.Log, message);
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Info(params object[] message)
 		{
 			AddLog(null, LogLevel.Info, message);
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void InfoCh(LogChannel channel, params object[] message)
 		{
 			AddLog(channel, LogLevel.Info, message);
 		}
-
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
-		[Conditional("LogLevel3")]
-		[Conditional("LogLevelWarning")]
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Warning(params object[] message)
 		{
 			AddLog(null, LogLevel.Warning, message);
 		}
-
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void WarningCh(LogChannel channel, params object[] message)
 		{
 			AddLog(channel, LogLevel.Warning, message);
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
-		[Conditional("LogLevel3")]
-		[Conditional("LogLevelWarning")]
-		[Conditional("LogLevel4")]
-		[Conditional("LogLevelAssert")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Assert(bool condition)
 		{
 			if (condition)
@@ -161,16 +184,15 @@ namespace WhiteSparrow.Shared.Logging
 			AddLog(null, LogLevel.Assert, "Assertion Failed");
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
-		[Conditional("LogLevel3")]
-		[Conditional("LogLevelWarning")]
-		[Conditional("LogLevel4")]
-		[Conditional("LogLevelAssert")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Assert(bool condition, params object[] message)
 		{
 			if (condition)
@@ -178,16 +200,15 @@ namespace WhiteSparrow.Shared.Logging
 			AddLog(null, LogLevel.Assert, message);
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
-		[Conditional("LogLevel3")]
-		[Conditional("LogLevelWarning")]
-		[Conditional("LogLevel4")]
-		[Conditional("LogLevelAssert")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Assert(LogChannel channel, bool condition)
 		{
 			if (condition)
@@ -195,16 +216,15 @@ namespace WhiteSparrow.Shared.Logging
 			AddLog(channel, LogLevel.Assert, "Assertion Failed");
 		}
 
-		[Conditional("LogLevel0")]
-		[Conditional("LogLevelDebug")]
-		[Conditional("LogLevel1")]
-		[Conditional("LogLevelDefault")]
-		[Conditional("LogLevel2")]
-		[Conditional("LogLevelInfo")]
-		[Conditional("LogLevel3")]
-		[Conditional("LogLevelWarning")]
-		[Conditional("LogLevel4")]
-		[Conditional("LogLevelAssert")]
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Assert(LogChannel channel, bool condition, params object[] message)
 		{
 			if (condition)
@@ -212,21 +232,63 @@ namespace WhiteSparrow.Shared.Logging
 			AddLog(channel, LogLevel.Assert, message);
 		}
 
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+		[Conditional("LogLevel5"), Conditional("LogLevelError")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Error(params object[] message)
 		{
 			AddLog(null, LogLevel.Error, message);
 		}
-
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+		[Conditional("LogLevel5"), Conditional("LogLevelError")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void ErrorCh(LogChannel channel, params object[] message)
 		{
 			AddLog(channel, LogLevel.Error, message);
 		}
-
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+		[Conditional("LogLevel5"), Conditional("LogLevelError")]
+		[Conditional("LogLevel6"), Conditional("LogLevelException")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void Exception(Exception exception, params object[] message)
 		{
 			AddException(null, LogLevel.Exception, exception, message);
 		}
-
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+		[Conditional("LogLevel5"), Conditional("LogLevelError")]
+		[Conditional("LogLevel6"), Conditional("LogLevelException")]
+#else
+		[Conditional("CHIRP")]
+#endif
 		public static void ExceptionCh(LogChannel channel, Exception exception, params object[] message)
 		{
 			AddException(channel, LogLevel.Exception, exception, message);
@@ -261,8 +323,7 @@ namespace WhiteSparrow.Shared.Logging
 			if (s_Loggers == null || s_Loggers.Length == 0)
 			{
 #if UNITY_EDITOR
-				UnityEngine.Debug.LogError(
-					"Attempting to use Chirp logger with no Loggers. Call Chirp.Initialize() before using.");
+				UnityEngine.Debug.LogError("Attempting to use Chirp logger with no Loggers. Call Chirp.Initialize() before using.");
 #endif
 
 				return false;

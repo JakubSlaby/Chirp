@@ -13,7 +13,7 @@ namespace WhiteSparrow.Shared.Logging
 		private const string DialogTitle = "Chirp: LogChannels Generator";
 
 		private const string ListTemplate = @"
-namespace WhiteSparrow.Shared.Logging
+namespace ${NAMESPACE}
 {
 	public class ${CLASS_NAME} : WhiteSparrow.Shared.Logging.AbstractLogChannelList
 	{
@@ -50,6 +50,7 @@ namespace WhiteSparrow.Shared.Logging
 			}
 
 			FileInfo outputFileInfo = null;
+			Type outputFileType = null;
 			if (existingItems.Length == 1)
 			{
 				if (TypeListCompare(typesForGeneration, indexedChannels))
@@ -59,6 +60,7 @@ namespace WhiteSparrow.Shared.Logging
 					return;
 				}
 
+				outputFileType = existingItems[0].Item1;
 				outputFileInfo = new FileInfo(existingItems[0].Item2);
 			}
 
@@ -80,7 +82,7 @@ namespace WhiteSparrow.Shared.Logging
 				outputFileInfo = new FileInfo(selectedPath);
 			}
 
-			GenerateFile(outputFileInfo, typesForGeneration);
+			GenerateFile(outputFileType, outputFileInfo, typesForGeneration);
 		}
 
 
@@ -120,13 +122,14 @@ namespace WhiteSparrow.Shared.Logging
 		}
 
 
-		private static void GenerateFile(FileInfo fileInfo, TypeCache.TypeCollection typeList)
+		private static void GenerateFile(Type fileType, FileInfo fileInfo, TypeCache.TypeCollection typeList)
 		{
 			var typeListBuilder = new StringBuilder();
 			foreach (var type in typeList) typeListBuilder.AppendLine($"			typeof({type.FullName}),");
 
 			var content = ListTemplate.Replace("${TYPE_LIST}", typeListBuilder.ToString())
-									  .Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""));
+									  .Replace("${CLASS_NAME}", fileInfo.Name.Replace(fileInfo.Extension, ""))
+									  .Replace("${NAMESPACE}", fileType != null ? fileType.Namespace : "WhiteSparrow.Shared.Logging");
 			File.WriteAllText(fileInfo.FullName, content);
 
 			AssetDatabase.Refresh();
