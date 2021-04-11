@@ -24,7 +24,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.7.0";
+		public const string Version = "0.8.0";
 
 		private static ILogger[] s_Loggers;
 
@@ -270,6 +270,7 @@ namespace WhiteSparrow.Shared.Logging
 		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
 		[Conditional("LogLevel5"), Conditional("LogLevelError")]
 		[Conditional("LogLevel6"), Conditional("LogLevelException")]
+		[Conditional("CHIRP")]
 #else
 		[Conditional("CHIRP")]
 #endif
@@ -286,6 +287,7 @@ namespace WhiteSparrow.Shared.Logging
 		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
 		[Conditional("LogLevel5"), Conditional("LogLevelError")]
 		[Conditional("LogLevel6"), Conditional("LogLevelException")]
+		[Conditional("CHIRP")]
 #else
 		[Conditional("CHIRP")]
 #endif

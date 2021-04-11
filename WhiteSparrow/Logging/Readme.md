@@ -5,13 +5,18 @@ You can find Installation more detailed instructions at the github repository we
 ## Installation
 Put the Chirp source files in Assets/Plugins.
 
-
 ## Initialisation
-To start using Chirp initialise the framework by calling `Chirp.Initialise();` and pass desired loggers.
+First we need to enable Chirp Framework for each desired platform and set the Logging Level.
+Navigate to `Tools/Chirp Logger/Chirp Settings` or you can find it in Project Settings window.
+In here you will be able to select on which platforms Chirp is enabled and which log level will be set.
+
+
+To start using Chirp in runtime, initialise the framework by calling `Chirp.Initialise();` and pass desired loggers.
 ```csharp
 Chirp.Initialise(new UnityConsoleLogger());
 ```
-Add `LogLevelDebug` to ProjectSettings/Player/Script Define Symbols (read more about [Conditional Compilation](#Conditional-Compilation)).
+
+
 
 ## Usage
 Default usage:

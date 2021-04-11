@@ -8,8 +8,8 @@ Simple Unity logging framework easily exandable for custom functionality
 - Default Unity console integration
 
 ## Installation
-Best way to install Chirp is to download the latest package from [Releases](/releases), full souce code is included in the UnityPackage.
-Import the package in to your Unity project through Assets/Import Package/Custom Package.
+Best way to install Chirp is to download the latest package from [Releases](/releases), full source code is included in the UnityPackage.
+Import the package in to your Unity project through `Assets/Import Package/Custom Package`.
 
 ## Usage
 Chirp Logger hooks up to the default unity `Debug.Log` methods but also allows you to use it's dedicated API.
@@ -18,7 +18,10 @@ To start using Chirp, initialise it with the desired Loggers.
 > Examples use an additional integration with AssetStore packages: [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-128881), [SRDebugger](https://assetstore.unity.com/packages/tools/gui/srdebugger-console-tools-on-device-27688)
 
 ### Initialisation
-Call the initialise method at the beginning of your runtime code and add `LogLevelDebug` to ProjectSettings/Player/Script Define Symbols (read more about [Conditional Compilation](#Conditional-Compilation)).
+The framework needs to be enabled for each desired target platform through the settings window. You can find it by opening `Tools/Chirp Framework/Chirp Settings` or by navigating directly to Project Settings window.
+
+
+Call the initialise method at the beginning of your runtime code.
 ```csharp
 Chirp.Initialise(new UnityConsoleLogger(), new QuantumConsoleLogger());
 ```
@@ -59,37 +62,14 @@ public class PlayerController
   // ...
 }
 ```
+After you change which types are tagged with the [LogChannel] attribute, you will need to generate a helper class that will hold the list.
 You can find the list generator under `Tools/Chirp Logger/Generate Log Channels List` menu.
 
 ## Conditional Compilation
-All Chirp log methods can be compiled conditionally allowing you to easily remove calls to these methods while compiling.
-Each log method corelates to a Log Level, which are:
-```csharp
-Debug = 0,
-Log = 1,
-Info = 2,
-Warning = 3,
-Assert = 4,
-Error = 5,
-Exception = 6
-```
-The script defines corelate to Log Levels
-```
-LogLevelDebug // Debug and above
-LogLevelDefault // Log and above
-LogLevelInfo // Info and above
-LogLevelWarning // Warning and above
-LogLevelAssert // Assert and above
-```
-Additionally you can use numbered defines
-```
-LogLevel0 // Debug and above
-LogLevel1 // Log and above
-LogLevel2 // Info and above
-LogLevel3 // Warning and above
-LogLevel4 // Assert and above
-```
-Conditional compilation is very useful when preparing release builds and dyou don't want to include debug logs.
+All chirp logging API methods are compiled conditionally and controlled through Player Script Define Symbols.
+If Chirp is disabled for given platform any calls to the API will be automatically skipped when compiling - this allows for easy changing of log levels and compiled features without the need to remove your own code.
+
+You can easily adjust the settings through the Chirp Logging Framework Project settings (`Tools/Chirp Logging/Chirp Settings`).
 
 ## Integrations
 Thanks to it's simple structure Chirp Logging is highly customisable. Most extensions relying on the default Console will work out of the box.

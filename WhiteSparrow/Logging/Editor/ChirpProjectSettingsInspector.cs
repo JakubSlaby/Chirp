@@ -9,6 +9,13 @@ namespace WhiteSparrow.Shared.Logging
 	{
 		private static class Styles
 		{
+			public static readonly GUIStyle WelcomeMessage;
+			public static readonly GUIStyle WelcomeMessageLabel;
+			public static readonly GUIStyle VersionLabel;
+			public static readonly GUIStyle WelcomeMessageButton;
+			public static readonly GUIStyle EditorCompilingMessageContainer;
+
+			public static readonly GUIStyle Header;
 			public static readonly GUIStyle PlatformTableToggleButton;
 			public static readonly GUIStyle PlatformTableRow;
 			public static readonly GUIStyle PlatformTableLabel;
@@ -19,6 +26,25 @@ namespace WhiteSparrow.Shared.Logging
 			
 			static Styles()
 			{
+				WelcomeMessage = new GUIStyle("FrameBox");
+				WelcomeMessage.padding = new RectOffset(10, 10, 12, 12);
+				
+				WelcomeMessageLabel = new GUIStyle(EditorStyles.label);
+				WelcomeMessageLabel.richText = true;
+				WelcomeMessageLabel.wordWrap = true;
+				WelcomeMessageLabel.stretchWidth = true;
+				WelcomeMessageButton = new GUIStyle(EditorStyles.miniButton);
+
+				VersionLabel = new GUIStyle(EditorStyles.miniLabel);
+				VersionLabel.margin = new RectOffset(0, 0, 10, 0);
+				
+				EditorCompilingMessageContainer = new GUIStyle("FrameBox");
+				EditorCompilingMessageContainer.padding = new RectOffset(10, 10, 12, 12);
+
+				Header = new GUIStyle(EditorStyles.boldLabel);
+				Header.fontSize = 14;
+				Header.margin = new RectOffset(0, 0, 20, 14);
+				
 				PlatformTableRow = new GUIStyle("FrameBox");
 				PlatformTableInfoColumn = new GUIStyle();
 				PlatformTableLogLevelColumn = new GUIStyle();
@@ -26,7 +52,7 @@ namespace WhiteSparrow.Shared.Logging
 				PlatformTableLabelCurrent = new GUIStyle("AssetLabel");
 				PlatformTableLabelCurrent.imagePosition = ImagePosition.ImageLeft;
 				PlatformTableLabelCurrent.fixedHeight = 24f;
-				PlatformTableLabelCurrent.padding = new RectOffset(10, 14, 4, 0);
+				PlatformTableLabelCurrent.padding = new RectOffset(10, 16, 4, 0);
 				
 				
 				PlatformTableLabel = new GUIStyle(PlatformTableLabelCurrent);
@@ -36,16 +62,15 @@ namespace WhiteSparrow.Shared.Logging
 				PlatformTableToggleButton.stretchWidth = false;
 				PlatformTableToggleButton.padding = new RectOffset(0, 0, 3, 3);
 			}
-			
 		}
-		
-		private ChirpProjectSettings settings => (ChirpProjectSettings) target;
 
 		private BuildTargetGroup[] m_AvailableBuildTargetGroups;
 		private Dictionary<BuildTargetGroup, bool> m_BuildTargetGroupToChirpEnabled;
 		private Dictionary<BuildTargetGroup, int> m_BuildTargetGroupToChirpLevel;
 		private Dictionary<BuildTargetGroup, GUIContent> m_BuildTargetGroupToLabel;
-		
+
+		private GUIContent m_ContentPlatformSettingsHelpMessage;
+
 		private void OnEnable()
 		{
 			m_AvailableBuildTargetGroups = ChirpBuildUtils.GetAvailableBuildTargetGroups();
@@ -53,6 +78,8 @@ namespace WhiteSparrow.Shared.Logging
 			m_BuildTargetGroupToChirpLevel = new Dictionary<BuildTargetGroup, int>();
 			m_BuildTargetGroupToLabel = new Dictionary<BuildTargetGroup, GUIContent>();
 			RefreshGroupData();
+			
+			
 		}
 
 		private void RefreshGroupData()
@@ -72,14 +99,31 @@ namespace WhiteSparrow.Shared.Logging
 
 		public override void OnInspectorGUI()
 		{
-			EditorGUILayout.LabelField("Current Version", settings.Version);
-
 			GUILayout.Space(20);
+
+			using (new GUILayout.HorizontalScope(Styles.WelcomeMessage))
+			{
+				using (new GUILayout.VerticalScope())
+				{
+					GUILayout.Label("Thanks for using Chirp!\nIf you find any issues or have ideas for enhancements, please post them in GitHub Issues!", Styles.WelcomeMessageLabel);
+					GUILayout.Label($"Version {Chirp.Version}", Styles.VersionLabel);
+				}
+				if (GUILayout.Button("GitHub", Styles.WelcomeMessageButton, GUILayout.MaxWidth(100)))
+				{
+					Application.OpenURL("https://github.com/JakubSlaby/Chirp");
+				}
+			}
 
 			if (EditorApplication.isCompiling)
 			{
-				var messageContent = EditorGUIUtility.TrTextContentWithIcon("Editor is compiling, please wait...", "Loading");
-				GUILayout.Label(messageContent);
+				using (new GUILayout.HorizontalScope(Styles.EditorCompilingMessageContainer))
+				{
+					var messageContent = EditorGUIUtility.TrTextContentWithIcon("Editor is compiling, please wait...", "Loading");
+					GUILayout.FlexibleSpace();
+					GUILayout.Label(messageContent);
+					GUILayout.FlexibleSpace();
+				}
+
 				return;
 			}
 
@@ -94,7 +138,9 @@ namespace WhiteSparrow.Shared.Logging
 			var enabledIconContent = EditorGUIUtility.IconContent("d_winbtn_mac_max");
 			var disabledIconContent = EditorGUIUtility.IconContent("d_winbtn_mac_close");
 			
-			GUILayout.Label("Platform Compilation Settings");
+			GUILayout.Label("Platform Compilation Settings", Styles.Header);
+			EditorGUILayout.HelpBox("Configure logging for each target platform. You can completely disable logging on selected platforms and define which logging level will be active.", MessageType.Info);
+			
 			foreach (var availableTargetGroup in m_AvailableBuildTargetGroups)
 			{
 				GUIStyle labelStyle = availableTargetGroup == activeBuildTargetGroup ? Styles.PlatformTableLabelCurrent : Styles.PlatformTableLabel;
@@ -102,11 +148,12 @@ namespace WhiteSparrow.Shared.Logging
 				Color bgColor = GUI.backgroundColor;
 				if(!chirpEnabled)
 					GUI.backgroundColor = Color.red;
+				
 				using (new GUILayout.HorizontalScope(Styles.PlatformTableRow))
 				{
 					
 					GUI.backgroundColor = bgColor;
-					using (new GUILayout.HorizontalScope(Styles.PlatformTableInfoColumn, GUILayout.Width(200)))
+					using (new GUILayout.HorizontalScope(Styles.PlatformTableInfoColumn, GUILayout.Width(200), GUILayout.ExpandWidth(true)))
 					{
 						GUILayout.Button(chirpEnabled ? enabledIconContent : disabledIconContent, Styles.PlatformTableToggleButton);
 
@@ -157,10 +204,6 @@ namespace WhiteSparrow.Shared.Logging
 							Repaint();
 						}
 					}
-
-					// string groupName = availableTargetGroup.ToString();
-					// GUILayout.Label(EditorGUIUtility.TrTextContentWithIcon(groupName, $"d_BuildSettings.{groupName}.Small"), Styles.PlatformTableLabelColumn);
-					// GUILayout.Button("enabled");
 				}
 			}
 		}
@@ -173,7 +216,7 @@ namespace WhiteSparrow.Shared.Logging
 			return provider;
 		}
 		 
-		[MenuItem("Tools/Chirp Logger/Chirp", priority = 290)]
+		[MenuItem("Tools/Chirp Logger/Chirp Settings", priority = 290)]
 		private static void ShowWindow()
 		{
 			SettingsService.OpenProjectSettings("Project/White Sparrow/Chirp Logging Framework");

@@ -55,7 +55,7 @@ namespace WhiteSparrow.Shared.Logging
 				return GetLogLevelByName(match.Groups[2].Value);
 			if (match.Groups[3].Success)
 				return Int32.Parse(match.Groups[3].Value);
-			return -1;
+			return (int)LogLevel.Exception;
 		}
 
 		public static void SetTargetGroupChirpEnabled(BuildTargetGroup group, bool enabled)
@@ -76,11 +76,12 @@ namespace WhiteSparrow.Shared.Logging
 		public static void SetTargetGroupLogLevel(BuildTargetGroup group, int level)
 		{
 			string currentScriptDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(group);
+			string logLevelString = level == (int) LogLevel.Exception ? "" : $"LogLevel{level}";
 			var match = s_LogLevelRegex.Match(currentScriptDefines);
 			if (match.Success)
-				currentScriptDefines = s_LogLevelRegex.Replace(currentScriptDefines, $"LogLevel{level}");
-			else
-				currentScriptDefines += $";LogLevel{level}";
+				currentScriptDefines = s_LogLevelRegex.Replace(currentScriptDefines, logLevelString);
+			else if(level != (int)LogLevel.Exception)
+				currentScriptDefines += $";{logLevelString}";
 			
 			PlayerSettings.SetScriptingDefineSymbolsForGroup(group, currentScriptDefines);
 		}
