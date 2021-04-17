@@ -24,10 +24,10 @@ namespace WhiteSparrow.Shared.Logging
 		}
 
 		[RuntimeInitializeOnLoadMethod]
-		private static void InitializeOnLoad()
+		private static void InitializeProjectPath()
 		{
 			s_ProjectPath = Application.dataPath;
-			var i = s_ProjectPath.LastIndexOf("Assets");
+			var i = s_ProjectPath.LastIndexOf("Assets", StringComparison.Ordinal);
 			if (i != -1)
 				s_ProjectPath = s_ProjectPath.Substring(0, i);
 			s_ProjectPath = s_ProjectPath.Replace('/', Path.DirectorySeparatorChar);
@@ -83,7 +83,7 @@ namespace WhiteSparrow.Shared.Logging
 							 !(declaringType.Namespace == "UnityEngine")))
 						{
 							stringBuilder.Append(" (at ");
-							if (str2.StartsWith(s_ProjectPath))
+							if (s_ProjectPath != null && str2.StartsWith(s_ProjectPath))
 								str2 = str2.Substring(s_ProjectPath.Length);
 							stringBuilder.Append(str2);
 							stringBuilder.Append(":");

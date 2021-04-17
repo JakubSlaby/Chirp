@@ -24,7 +24,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.8.0";
+		public const string Version = "0.8.1";
 
 		private static ILogger[] s_Loggers;
 
