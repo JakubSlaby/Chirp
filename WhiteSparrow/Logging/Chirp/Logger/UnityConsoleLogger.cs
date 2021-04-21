@@ -28,7 +28,6 @@ namespace WhiteSparrow.Shared.Logging
 			if (m_DefaultUnityLogHandler != null)
 			{
 				Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
-
 				Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.Full);
 				Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.Full);
 				Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.Full);
@@ -37,6 +36,7 @@ namespace WhiteSparrow.Shared.Logging
 
 			m_DefaultUnityLogHandler = null;
 		}
+		
 
 		~UnityConsoleLogger()
 		{
@@ -63,8 +63,8 @@ namespace WhiteSparrow.Shared.Logging
 			}
 
 			base.FormatString(stringBuilder, logEvent);
-			stringBuilder.Append(Environment.NewLine);
-			stringBuilder.AppendLine(LoggingStackTraceUtil.FormatUnityStackTrace(logEvent.stackTrace));
+			stringBuilder.AppendLine();
+			stringBuilder.AppendLine(logEvent.stackTrace);
 		}
 	}
 
@@ -74,11 +74,11 @@ namespace WhiteSparrow.Shared.Logging
 	/// </summary>
 	public class UnityLoggerHandler : ILogHandler
 	{
-		private static readonly LogChannel s_LogChannel = new LogChannel("Unity") {isFallback = true};
+		private static readonly LogChannel s_LogChannel = new LogChannel("Unity") { isFallback = true };
 
 		public void LogFormat(LogType logType, Object context, string format, params object[] args)
 		{
-			Chirp.AddLog(s_LogChannel, UnityLogUtil.FromUnityLogType(logType), string.Format(format, args));
+			Chirp.AddLog(s_LogChannel, UnityLogUtil.FromUnityLogType(logType), 1,string.Format(format, args));
 		}
 
 		public void LogException(Exception exception, Object context)

@@ -33,8 +33,9 @@ namespace WhiteSparrow.Shared.Logging
 			s_ProjectPath = s_ProjectPath.Replace('/', Path.DirectorySeparatorChar);
 		}
 
-		public static string FormatUnityStackTrace(StackTrace stackTrace)
+		public static string FormatUnityStackTrace(StackTrace stackTrace, out LogChannel channel)
 		{
+			channel = null;
 			var stringBuilder = s_StackTraceBuilder;
 			stringBuilder.Clear();
 			for (var index1 = 0; index1 < stackTrace.FrameCount; ++index1)
@@ -46,6 +47,9 @@ namespace WhiteSparrow.Shared.Logging
 					var declaringType = method.DeclaringType;
 					if (declaringType != null)
 					{
+						if(channel == null)
+							channel = LogChannel.GetForTarget(declaringType);
+						
 						var str1 = declaringType.Namespace;
 						if (!string.IsNullOrEmpty(str1))
 						{
@@ -74,18 +78,17 @@ namespace WhiteSparrow.Shared.Logging
 						if (str2 != null &&
 							(!(declaringType.Name == "Debug") || !(declaringType.Namespace == "UnityEngine")) &&
 							(!(declaringType.Name == "Logger") || !(declaringType.Namespace == "UnityEngine")) &&
-							(!(declaringType.Name == "DebugLogHandler") ||
-							 !(declaringType.Namespace == "UnityEngine")) &&
-							(!(declaringType.Name == "Assert") ||
-							 !(declaringType.Namespace == "UnityEngine.Assertions")) &&
-							(!(method.Name == "print") ||
-							 !(declaringType.Name == "MonoBehaviour") ||
-							 !(declaringType.Namespace == "UnityEngine")))
+							(!(declaringType.Name == "DebugLogHandler") || !(declaringType.Namespace == "UnityEngine")) &&
+							(!(declaringType.Name == "Assert") || !(declaringType.Namespace == "UnityEngine.Assertions")) &&
+							(!(method.Name == "print") || !(declaringType.Name == "MonoBehaviour") || !(declaringType.Namespace == "UnityEngine")))
 						{
 							stringBuilder.Append(" (at ");
-							if (s_ProjectPath != null && str2.StartsWith(s_ProjectPath))
-								str2 = str2.Substring(s_ProjectPath.Length);
-							stringBuilder.Append(str2);
+							if (s_ProjectPath != null)
+							{
+								if (str2.StartsWith(s_ProjectPath))
+									str2 = str2.Substring(s_ProjectPath.Length);
+								stringBuilder.Append(str2);
+							}
 							stringBuilder.Append(":");
 							stringBuilder.Append(frame.GetFileLineNumber().ToString());
 							stringBuilder.Append(")");

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -11,7 +10,7 @@ namespace WhiteSparrow.Shared.Logging
 
 		public object[] messages;
 
-		public StackTrace stackTrace;
+		public string stackTrace;
 		public DateTime timeStamp;
 	}
 }

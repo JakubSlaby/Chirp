@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -24,7 +25,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.8.1";
+		public const string Version = "0.8.2";
 
 		private static ILogger[] s_Loggers;
 
@@ -63,7 +64,6 @@ namespace WhiteSparrow.Shared.Logging
 
 		public static void Destroy()
 		{
-			Info("Destroy");
 #if UNITY_EDITOR
 			EditorApplication.playModeStateChanged -= OnPlayModeChanged;
 #endif
@@ -298,11 +298,15 @@ namespace WhiteSparrow.Shared.Logging
 
 		internal static void AddLog(LogChannel channel, LogLevel logLevel, params object[] message)
 		{
+			AddLog(channel, logLevel, 0, message);
+		}
+		
+		internal static void AddLog(LogChannel channel, LogLevel logLevel, int skipFrames, params object[] message)
+		{
 			if (!AttemptLogAppend())
 				return;
 
-
-			var logEvent = ConstructLogEvent(channel, logLevel, null, message);
+			var logEvent = ConstructLogEvent(channel, logLevel, null, skipFrames, message);
 
 			for (int i = 0, l = s_Loggers.Length; i < l; i++)
 				s_Loggers[i].Append(logEvent);
@@ -314,28 +318,14 @@ namespace WhiteSparrow.Shared.Logging
 			if (!AttemptLogAppend())
 				return;
 
-			var logEvent = ConstructLogEvent(channel, logLevel, exception, messages);
+			var logEvent = ConstructLogEvent(channel, logLevel, exception, 0, messages);
 
 			for (int i = 0, l = s_Loggers.Length; i < l; i++)
 				s_Loggers[i].Append(logEvent);
 		}
 
-		private static bool AttemptLogAppend()
-		{
-			if (s_Loggers == null || s_Loggers.Length == 0)
-			{
-#if UNITY_EDITOR
-				UnityEngine.Debug.LogError("Attempting to use Chirp logger with no Loggers. Call Chirp.Initialize() before using.");
-#endif
-
-				return false;
-			}
-
-			return true;
-		}
-
 		private static LogEvent ConstructLogEvent(LogChannel channel, LogLevel logLevel, Exception exception,
-			params object[] messages)
+			int skipFrames, params object[] messages)
 		{
 			var evt = new LogEvent();
 
@@ -344,25 +334,27 @@ namespace WhiteSparrow.Shared.Logging
 			evt.timeStamp = DateTime.UtcNow;
 			evt.messages = messages;
 			evt.exception = exception;
-			evt.stackTrace = exception != null ? new StackTrace(exception) : new StackTrace(3, true);
 
-			if (channel == null || channel.isFallback)
-				for (var i = 0; i < evt.stackTrace.FrameCount; i++)
-				{
-					var frame = evt.stackTrace.GetFrame(i);
-					var method = frame?.GetMethod();
-					if (method == null)
-						continue;
-					var methodType = method.DeclaringType;
-					var c = LogChannel.GetForTarget(methodType);
-					if (c != null)
-					{
-						evt.channel = c;
-						break;
-					}
-				}
-
+			StackTrace stackTrace = exception != null ? new StackTrace(exception) : new StackTrace(3 + skipFrames, true);
+			evt.stackTrace = LoggingStackTraceUtil.FormatUnityStackTrace(stackTrace, out LogChannel foundChannel);
+			if ((evt.channel == null || evt.channel.isFallback) && foundChannel != null)
+				evt.channel = foundChannel;
+			
 			return evt;
+		}
+		
+		
+		private static bool AttemptLogAppend()
+		{
+			if (s_Loggers == null || s_Loggers.Length == 0)
+			{
+#if UNITY_EDITOR
+				UnityEngine.Debug.LogError("Attempting to use Chirp logger with no Loggers. Call Chirp.Initialize() before using.");
+#endif
+				return false;
+			}
+
+			return true;
 		}
 	}
 }
