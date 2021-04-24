@@ -110,7 +110,7 @@ namespace WhiteSparrow.Shared.Logging
 				}
 				if (GUILayout.Button("GitHub", Styles.WelcomeMessageButton, GUILayout.MaxWidth(100)))
 				{
-					Application.OpenURL("https://github.com/JakubSlaby/Chirp");
+					VisitGitHub();
 				}
 			}
 
@@ -217,9 +217,14 @@ namespace WhiteSparrow.Shared.Logging
 		}
 		 
 		[MenuItem("Tools/Chirp Logger/Chirp Settings", priority = 290)]
-		private static void ShowWindow()
+		internal static void ShowWindow()
 		{
 			SettingsService.OpenProjectSettings("Project/White Sparrow/Chirp Logging Framework");
+		}
+
+		internal static void VisitGitHub()
+		{
+			Application.OpenURL("https://github.com/JakubSlaby/Chirp");
 		}
 	}
 }

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -25,16 +25,23 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.8.2";
+		public const string Version = "0.8.4";
 
 		private static ILogger[] s_Loggers;
-
+		
+		[Conditional("CHIRP")]
 		public static void Initialize(params ILogger[] loggers)
 		{
 			if (loggers == null || loggers.Length == 0)
 				return;
-
-			s_Loggers = loggers;
+			Initialize((IEnumerable<ILogger>)loggers);
+		}
+		
+		[Conditional("CHIRP")]
+		public static void Initialize(IEnumerable<ILogger> loggers)
+		{
+			List<ILogger> loggersWrapper = new List<ILogger>(loggers);
+			s_Loggers = loggersWrapper.ToArray();
 
 			foreach (var logger in s_Loggers)
 				logger.Initialise();

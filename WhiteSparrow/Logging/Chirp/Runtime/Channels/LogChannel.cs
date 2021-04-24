@@ -76,6 +76,18 @@ namespace WhiteSparrow.Shared.Logging
 			return id != null ? id.GetHashCode() : 0;
 		}
 
+		public static bool operator ==(LogChannel lhs, LogChannel rhs)
+		{
+			if (ReferenceEquals(null, lhs))
+				return ReferenceEquals(null, rhs);
+			return lhs.Equals(rhs);
+		}
+
+		public static bool operator !=(LogChannel lhs, LogChannel rhs)
+		{
+			return !(lhs == rhs);
+		}
+		
 #endregion
 
 #region Static Registry
