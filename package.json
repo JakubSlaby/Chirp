@@ -3,6 +3,18 @@
   "displayName": "Chirp Logging Framework",
   "version": "0.8.5",
   "unity": "2019.4",
+  "keywords": [
+    "unity",
+    "logging",
+    "editor",
+    "debug",
+    "tools"
+  ],
+  "description": "Chirp Logging Framework adds a more configurable logging system that can be easily integrated with different tools.",
+  "repository": {
+    "url": "https://github.com/JakubSlaby/Chirp.git",
+    "type": "git"
+  },
   "files": [
     "WhiteSparrow/*",
     "*.meta"
