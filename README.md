@@ -8,7 +8,7 @@ Simple Unity logging framework easily exandable for custom functionality
 - Default Unity console integration
 
 ## Installation
-Best way to install Chirp is to download the latest package from [Releases](/releases), full source code is included in the UnityPackage.
+Best way to install Chirp is to download the latest package from [Releases](https://github.com/JakubSlaby/Chirp/releases), full source code is included in the UnityPackage.
 Import the package in to your Unity project through `Assets/Import Package/Custom Package`.
 
 ### Initialisation
