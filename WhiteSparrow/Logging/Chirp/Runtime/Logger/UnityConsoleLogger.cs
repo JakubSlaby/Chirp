@@ -13,7 +13,7 @@ namespace WhiteSparrow.Shared.Logging
 	{
 		private ILogHandler m_DefaultUnityLogHandler;
 
-		public override void Initialise()
+		public override void Initialize()
 		{
 			m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
 			Debug.unityLogger.logHandler = new UnityLoggerHandler();

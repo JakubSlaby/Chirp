@@ -11,20 +11,17 @@ Simple Unity logging framework easily exandable for custom functionality
 Best way to install Chirp is to download the latest package from [Releases](/releases), full source code is included in the UnityPackage.
 Import the package in to your Unity project through `Assets/Import Package/Custom Package`.
 
-## Usage
-Chirp Logger hooks up to the default unity `Debug.Log` methods but also allows you to use it's dedicated API.
-To start using Chirp, initialise it with the desired Loggers.
-
-> Examples use an additional integration with AssetStore packages: [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-128881), [SRDebugger](https://assetstore.unity.com/packages/tools/gui/srdebugger-console-tools-on-device-27688)
-
 ### Initialisation
 The framework needs to be enabled for each desired target platform through the settings window. You can find it by opening `Tools/Chirp Framework/Chirp Settings` or by navigating directly to Project Settings window.
 
+To initialize the framework in runtime you can call `Chirp.Initialize()` anywhere from your code.
 
-Call the initialise method at the beginning of your runtime code.
 ```csharp
-Chirp.Initialise(new UnityConsoleLogger(), new QuantumConsoleLogger());
+Chirp.Initialize(new UnityConsoleLogger(), new QuantumConsoleLogger());
 ```
+> Examples use an additional integration with AssetStore packages: [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-128881), [SRDebugger](https://assetstore.unity.com/packages/tools/gui/srdebugger-console-tools-on-device-27688)
+
+Or use the `Chirp Initializer` GameObject Component to do that automatically. You can create it through `Tools/Chirp Logger/Create Initializer Object`.
 
 ### Logging
 The default log API with simple message and stack trace functionality.

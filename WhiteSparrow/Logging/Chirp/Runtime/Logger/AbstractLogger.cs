@@ -7,7 +7,7 @@ namespace WhiteSparrow.Shared.Logging
 	{
 		[ThreadStatic] private readonly StringBuilder m_StringBuilder = new StringBuilder();
 
-		public abstract void Initialise();
+		public abstract void Initialize();
 
 		public abstract void Destroy();
 

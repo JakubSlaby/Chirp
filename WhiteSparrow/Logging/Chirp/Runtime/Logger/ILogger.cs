@@ -2,7 +2,7 @@
 {
 	public interface ILogger
 	{
-		void Initialise();
+		void Initialize();
 		void Destroy();
 
 		void Append(LogEvent logEvent);

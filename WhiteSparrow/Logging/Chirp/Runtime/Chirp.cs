@@ -25,7 +25,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.8.4";
+		public const string Version = "0.8.5";
 
 		private static ILogger[] s_Loggers;
 		
@@ -44,9 +44,9 @@ namespace WhiteSparrow.Shared.Logging
 			s_Loggers = loggersWrapper.ToArray();
 
 			foreach (var logger in s_Loggers)
-				logger.Initialise();
+				logger.Initialize();
 
-			Debug($"Chirp v{Version} Initialised.\nIncluded Loggers: {ToStringLoggers()}");
+			Debug($"Chirp v{Version} Initialized.\nIncluded Loggers: {ToStringLoggers()}");
 
 #if UNITY_EDITOR
 			EditorApplication.playModeStateChanged -= OnPlayModeChanged;

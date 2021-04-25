@@ -12,28 +12,35 @@ namespace WhiteSparrow.Shared.Logging
 	{
 		private static class Styles
 		{
-			public static readonly GUIStyle InfoBox;
+			public static readonly GUIStyle InfoTitle;
 			public static readonly GUIStyle InfoMessage;
-			public static readonly GUIStyle InfoButtonBar;
 			
 			public static readonly GUIStyle LoggerFrame;
+			public static readonly GUIStyle LoggerInlineEditorFrame;
 			
 			static Styles()
 			{
-				InfoBox = new GUIStyle("FrameBox");
-				InfoBox.margin = new RectOffset(InfoBox.margin.left, InfoBox.margin.right, 6, 4);
-				InfoBox.padding = new RectOffset(6, 6, 6, 6);
-				
+				InfoTitle = new GUIStyle(EditorStyles.label);
+				InfoTitle.richText = true;
+				InfoTitle.wordWrap = true;
+				InfoTitle.stretchWidth = true;
+				InfoTitle.fontSize = 13;
+				InfoTitle.fontStyle = FontStyle.Bold;
 				
 				InfoMessage = new GUIStyle(EditorStyles.label);
 				InfoMessage.richText = true;
 				InfoMessage.wordWrap = true;
 				InfoMessage.stretchWidth = true;
+				InfoMessage.margin = new RectOffset(0, 0, 6, 4);
 
-				InfoButtonBar = new GUIStyle();
-				InfoButtonBar.margin = new RectOffset(0, 0, 6, 2);
-				
 				LoggerFrame  = new GUIStyle("FrameBox");
+				LoggerInlineEditorFrame = new GUIStyle("FrameBox");
+				LoggerInlineEditorFrame.margin = new RectOffset(
+					LoggerInlineEditorFrame.margin.left + 30, 
+					LoggerInlineEditorFrame.margin.right,
+					LoggerInlineEditorFrame.margin.top -40, 
+					LoggerInlineEditorFrame.margin.bottom
+					);
 			}
 		}
 		
@@ -79,26 +86,21 @@ namespace WhiteSparrow.Shared.Logging
 
 		private void DrawBasicInfo()
 		{
-			GUILayout.Label("Chirp Logging Framework: Initialize Helper", EditorStyles.boldLabel);
-			using (new GUILayout.VerticalScope(Styles.InfoBox))
+			using (new GUILayout.HorizontalScope())
 			{
-				GUILayout.Label("This helper allows you to easily initialize different chirp Loggers (if present in project).", Styles.InfoMessage);
-
-				using (new GUILayout.HorizontalScope(Styles.InfoButtonBar))
+				GUILayout.Label("Chirp Logging Framework: Initialize Helper", Styles.InfoTitle);
+				GUILayout.FlexibleSpace();
+				if (GUILayout.Button("Settings", EditorStyles.miniButton))
 				{
-					GUILayout.FlexibleSpace();
-					if (GUILayout.Button("Settings", EditorStyles.miniButton))
-					{
-						ChirpProjectSettingsInspector.ShowWindow();
-					}
+					ChirpProjectSettingsInspector.ShowWindow();
+				}
 
-					if (GUILayout.Button("GitHub", EditorStyles.miniButton))
-					{
-						ChirpProjectSettingsInspector.VisitGitHub();
-					}
+				if (GUILayout.Button("GitHub", EditorStyles.miniButton))
+				{
+					ChirpProjectSettingsInspector.VisitGitHub();
 				}
 			}
-			
+			GUILayout.Label("This helper allows you to easily initialize different chirp Loggers (if present in project).", Styles.InfoMessage);
 		}
 		
 		private void DrawChirpDisabled()
@@ -148,7 +150,7 @@ namespace WhiteSparrow.Shared.Logging
 				{
 					if(m_InlineEditor == null || m_InlineEditor.target != component)
 						m_InlineEditor = Editor.CreateEditor(component);
-					using (new GUILayout.VerticalScope(Styles.LoggerFrame))
+					using (new GUILayout.VerticalScope(Styles.LoggerInlineEditorFrame))
 					{
 						m_InlineEditor.OnInspectorGUI();
 					}
@@ -205,6 +207,18 @@ namespace WhiteSparrow.Shared.Logging
 			}
 
 			loggerType = null;
+		}
+		
+		
+		[MenuItem("Tools/Chirp Logger/Create Initializer Object", priority = 301)]
+		private static void CreateObject(MenuCommand menuCommand)
+		{
+			Undo.IncrementCurrentGroup();
+			GameObject go = new GameObject("Chirp Initializer");
+			Undo.RegisterCreatedObjectUndo(go, "Chirp Initializer");
+			Undo.AddComponent<ChirpInitialize>(go);
+			Undo.RecordObject(go, "Chirp Initializer");
+			Selection.activeObject = go;
 		}
 	}
 }

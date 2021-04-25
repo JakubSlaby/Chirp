@@ -9,7 +9,7 @@ namespace WhiteSparrow.Shared.Logging.Initialize
 	{
 		public List<Component> m_InitializeComponents;
 
-		#if CHIRP
+#if CHIRP
 		private void Awake()
 		{
 			if (m_InitializeComponents == null || m_InitializeComponents.Count == 0)
@@ -24,7 +24,9 @@ namespace WhiteSparrow.Shared.Logging.Initialize
 
 			Chirp.Initialize(loggers);
 		}
+
+#endif
+
 		
-		#endif
 	}
 }
