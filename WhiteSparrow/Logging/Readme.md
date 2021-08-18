@@ -5,7 +5,15 @@ You can find Installation more detailed instructions at the github repository we
 ## Installation
 Put the Chirp source files in Assets/Plugins.
 
-## Initialisation
+## Initialisation through a component
+To quickly initialise the logging framework you can create a Chirp Initializer game object in your scene.
+Simply go to `Tools/Chirp Logger/Create Initializer Object`.
+
+![Log Example](../../Images/package-component.jpg)
+
+Enable the available loggers (by default it comes with UnityConsoleLogger) and enjoy!
+
+## Initialisation from code
 First we need to enable Chirp Framework for each desired platform and set the Logging Level.
 Navigate to `Tools/Chirp Logger/Chirp Settings` or you can find it in Project Settings window.
 In here you will be able to select on which platforms Chirp is enabled and which log level will be set.

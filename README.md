@@ -11,7 +11,15 @@ Simple Unity logging framework easily exandable for custom functionality
 Best way to install Chirp is to download the latest package from [Releases](https://github.com/JakubSlaby/Chirp/releases), full source code is included in the UnityPackage.
 Import the package in to your Unity project through `Assets/Import Package/Custom Package`.
 
-### Initialisation
+## Initialisation through a component
+To quickly initialise the logging framework you can create a Chirp Initializer game object in your scene.
+Simply go to `Tools/Chirp Logger/Create Initializer Object`.
+
+![Log Example](Images/package-component.jpg)
+
+Enable the available loggers (by default it comes with UnityConsoleLogger) and enjoy!
+
+### Initialisation From Code
 The framework needs to be enabled for each desired target platform through the settings window. You can find it by opening `Tools/Chirp Framework/Chirp Settings` or by navigating directly to Project Settings window.
 
 To initialize the framework in runtime you can call `Chirp.Initialize()` anywhere from your code.
@@ -67,6 +75,7 @@ All chirp logging API methods are compiled conditionally and controlled through 
 If Chirp is disabled for given platform any calls to the API will be automatically skipped when compiling - this allows for easy changing of log levels and compiled features without the need to remove your own code.
 
 You can easily adjust the settings through the Chirp Logging Framework Project settings (`Tools/Chirp Logging/Chirp Settings`).
+![Log Example](Images/package-settings.jpg)
 
 ## Integrations
 Thanks to it's simple structure Chirp Logging is highly customisable. Most extensions relying on the default Console will work out of the box.
