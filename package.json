@@ -1,0 +1,24 @@
+{
+    "name": "com.jakubslaby.chirp",
+    "displayName": "Chirp - Unity Logging",
+    "description": "Simple Unity logging framework easily exandable for custom functionality",
+    "author": "Jakub Slaby <jakubslaby@gmail.com>",
+    "tags": [],
+    "version": "0.9.0",
+    "dependencies": {},
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/JakubSlaby/Chirp.git"
+    },
+    "bugs": {
+        "url": "https://github.com/JakubSlaby/Chirp/issues"
+    },
+    "directories": {
+    },
+    "keywords": [
+        "logging",
+        "unity",
+        "testing",
+        "debug"
+    ]
+}
