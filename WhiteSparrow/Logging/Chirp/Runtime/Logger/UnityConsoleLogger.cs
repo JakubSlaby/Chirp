@@ -48,8 +48,7 @@ namespace WhiteSparrow.Shared.Logging
 			if (logEvent.level == LogLevel.Exception && logEvent.exception != null)
 				m_DefaultUnityLogHandler.LogException(logEvent.exception, null);
 			else
-				m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.level), null,
-					CreateString(logEvent));
+				m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.level), null,  "{0}",CreateString(logEvent));
 		}
 
 		protected override void FormatString(StringBuilder stringBuilder, LogEvent logEvent)
@@ -87,6 +86,7 @@ namespace WhiteSparrow.Shared.Logging
 		}
 	}
 
+	
 	public static class UnityLogUtil
 	{
 		public static LogLevel FromUnityLogType(LogType logType)
