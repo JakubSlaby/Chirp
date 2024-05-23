@@ -9,18 +9,14 @@ namespace WhiteSparrow.Shared.Logging
 	///     Default logger for synchronising with the Unity Console.
 	///     Intercepts any messages from Debug.Log calls and processes them through the Chirp framework.
 	/// </summary>
-	public class UnityConsoleLogger : AbstractLogger
+	public class UnityLogger : AbstractLogger, ILogHandler
 	{
 		private ILogHandler m_DefaultUnityLogHandler;
 
 		public override void Initialize()
 		{
 			m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
-			Debug.unityLogger.logHandler = new UnityLoggerHandler();
-			Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
+			Debug.unityLogger.logHandler = this;
 		}
 
 		public override void Destroy()
@@ -28,21 +24,18 @@ namespace WhiteSparrow.Shared.Logging
 			if (m_DefaultUnityLogHandler != null)
 			{
 				Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
-				Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.Full);
-				Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.Full);
-				Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.Full);
-				Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.Full);
 			}
 
 			m_DefaultUnityLogHandler = null;
 		}
 		
 
-		~UnityConsoleLogger()
+		~UnityLogger()
 		{
 			Destroy();
 		}
 
+		[HideInCallstack]
 		public override void Append(LogEvent logEvent)
 		{
 			if (logEvent.level == LogLevel.Exception && logEvent.exception != null)
@@ -55,32 +48,23 @@ namespace WhiteSparrow.Shared.Logging
 		{
 			if (logEvent.channel != null)
 			{
-				stringBuilder.Append('[');
+				stringBuilder.Append($"[<color=#{ColorUtility.ToHtmlStringRGB(logEvent.channel.color)}>");
 				stringBuilder.Append(logEvent.channel.name);
-				stringBuilder.Append(']');
-				stringBuilder.Append(' ');
+				stringBuilder.Append("</color>] ");
 			}
 
 			base.FormatString(stringBuilder, logEvent);
-			stringBuilder.AppendLine();
-			stringBuilder.AppendLine(logEvent.stackTrace);
 		}
-	}
 
-	/// <summary>
-	///     Overwrite Log Handler for intercepting Unity Debug.Log messages.
-	///     Forwards them in to Chirp assigning default channel of "Unity"
-	/// </summary>
-	public class UnityLoggerHandler : ILogHandler
-	{
 		private static readonly LogChannel s_LogChannel = new LogChannel("Unity") { isFallback = true };
-
-		public void LogFormat(LogType logType, Object context, string format, params object[] args)
+		[HideInCallstack]
+		void ILogHandler.LogFormat(LogType logType, Object context, string format, params object[] args)
 		{
-			Chirp.AddLog(s_LogChannel, UnityLogUtil.FromUnityLogType(logType), 1,string.Format(format, args));
+			Chirp.AddLog(s_LogChannel, UnityLogUtil.FromUnityLogType(logType), 1, string.Format(format, args));
 		}
 
-		public void LogException(Exception exception, Object context)
+		[HideInCallstack]
+		void ILogHandler.LogException(Exception exception, Object context)
 		{
 			Chirp.AddException(s_LogChannel, LogLevel.Exception, exception);
 		}

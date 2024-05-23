@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2023-05-24
+### Added
+- LogChannel instance can now be used to invoke specific logs with that Channel
+
+### Changed 
+- New Unity no longer allows you to paste stack traces in the message - reverted back to using UnityEngine native console stack trace.
+- You can select Console > Strip Logging Callback to strip unnecessary stack trace entries.
+
+### Fixed
+- Fix: Formatting of Unity logs with {} will no longer cause exceptions
+
 ## [0.9.1] - 2021-08-18
 ### Changed
 - Docs update, added screenshots

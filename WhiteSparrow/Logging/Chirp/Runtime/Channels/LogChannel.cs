@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging
 {
 	public class LogChannel : IEquatable<LogChannel>, IEquatable<string>
 	{
-		public readonly Color color;
+		public Color color;
 		public readonly string id;
 		public readonly string name;
 
@@ -45,7 +46,103 @@ namespace WhiteSparrow.Shared.Logging
 		{
 			return Get(logChannel);
 		}
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Debug(params object[] message)
+		{
+			Chirp.AddLog(this, LogLevel.Debug, message);
+		}
 
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Log(params object[] message)
+		{
+			Chirp.AddLog(this, LogLevel.Log, message);
+		}
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Info(params object[] message)
+		{
+			Chirp.AddLog(this, LogLevel.Info, message);
+		}
+
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Warning(params object[] message)
+		{
+			Chirp.AddLog(this, LogLevel.Warning, message);
+		}
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Assert(LogChannel channel, bool condition, params object[] message)
+		{
+			if (condition)
+				return;
+			Chirp.AddLog(this, LogLevel.Assert, message);
+		}
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+		[Conditional("LogLevel5"), Conditional("LogLevelError")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Error(params object[] message)
+		{
+			Chirp.AddLog(this, LogLevel.Error, message);
+		}
+		
+		
+#if CHIRP
+		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
+		[Conditional("LogLevel1"), Conditional("LogLevelDefault")]
+		[Conditional("LogLevel2"), Conditional("LogLevelInfo")]
+		[Conditional("LogLevel3"), Conditional("LogLevelWarning")]
+		[Conditional("LogLevel4"), Conditional("LogLevelAssert")]
+		[Conditional("LogLevel5"), Conditional("LogLevelError")]
+		[Conditional("LogLevel6"), Conditional("LogLevelException")]
+		[Conditional("CHIRP")]
+#else
+		[Conditional("CHIRP")]
+#endif
+		public void Exception(Exception exception, params object[] message)
+		{
+			Chirp.AddException(this, LogLevel.Exception, exception, message);
+		}
+		
 #region Comparison
 
 		public bool Equals(LogChannel other)
