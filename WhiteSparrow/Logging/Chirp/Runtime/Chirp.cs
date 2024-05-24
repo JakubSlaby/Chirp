@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-
-
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -20,8 +19,6 @@ namespace WhiteSparrow.Shared.Logging
 		Error = 5,
 		Exception = 6
 	}
-
-			
 
 	public static class Chirp
 	{
@@ -303,11 +300,13 @@ namespace WhiteSparrow.Shared.Logging
 			AddException(channel, LogLevel.Exception, exception, message);
 		}
 
+		[HideInCallstack]
 		internal static void AddLog(LogChannel channel, LogLevel logLevel, params object[] message)
 		{
 			AddLog(channel, logLevel, 0, message);
 		}
 		
+		[HideInCallstack]
 		internal static void AddLog(LogChannel channel, LogLevel logLevel, int skipFrames, params object[] message)
 		{
 			if (!AttemptLogAppend())
@@ -319,6 +318,7 @@ namespace WhiteSparrow.Shared.Logging
 				s_Loggers[i].Append(logEvent);
 		}
 
+		[HideInCallstack]
 		internal static void AddException(LogChannel channel, LogLevel logLevel, Exception exception,
 			params object[] messages)
 		{

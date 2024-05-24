@@ -7,11 +7,11 @@ namespace WhiteSparrow.Shared.Logging.Initialize
 	/// Used in the simple initializer only.
 	/// </summary>
 	[AddComponentMenu("")]
-	public class ChirpInitializeUnityConsoleLogger : AbstractLoggerInitializeComponent<UnityConsoleLogger>
+	public class ChirpInitializeUnityConsoleLogger : AbstractLoggerInitializeComponent<UnityLogger>
 	{
-		public override UnityConsoleLogger GetInstance()
+		public override UnityLogger GetInstance()
 		{
-			return new UnityConsoleLogger();
+			return new UnityLogger();
 		}
 	}
 }

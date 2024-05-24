@@ -1,3 +1,6 @@
 /Images/*.meta
 Images.meta
 Development.meta
+**/.idea
+**/.npmrc
+**/.DS_Store
