@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using WhiteSparrow.Shared.Logging.Outputs;
 
 namespace WhiteSparrow.Shared.Logging.Initialize
 {
@@ -7,11 +8,11 @@ namespace WhiteSparrow.Shared.Logging.Initialize
 	/// Used in the simple initializer only.
 	/// </summary>
 	[AddComponentMenu("")]
-	public class ChirpInitializeUnityConsoleLogger : AbstractLoggerInitializeComponent<UnityLogger>
+	public class ChirpUnityConsoleLogger : AbstractLoggerInitializeComponent
 	{
-		public override UnityLogger GetInstance()
+		public override void Initialize()
 		{
-			return new UnityLogger();
+			Chirp.AddOutput<UnityConsoleOutput>();
 		}
 	}
 }

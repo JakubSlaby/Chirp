@@ -15,14 +15,11 @@ namespace WhiteSparrow.Shared.Logging.Initialize
 			if (m_InitializeComponents == null || m_InitializeComponents.Count == 0)
 				return;
 
-			List<ILogger> loggers = new List<ILogger>();
 			foreach (var component in m_InitializeComponents)
 			{
 				if(component is IChirpLoggerInitializeComponent initializeComponent)
-					loggers.Add(initializeComponent.GetLoggerInstance());
+					initializeComponent.Initialize();
 			}
-
-			Chirp.Initialize(loggers);
 		}
 
 #endif

@@ -33,9 +33,9 @@ namespace WhiteSparrow.Shared.Logging
 			s_ProjectPath = s_ProjectPath.Replace('/', Path.DirectorySeparatorChar);
 		}
 
-		public static string FormatUnityStackTrace(StackTrace stackTrace, out LogChannel channel)
+		public static string FormatUnityStackTrace(StackTrace stackTrace)
 		{
-			channel = null;
+			// channel = null;
 			var stringBuilder = s_StackTraceBuilder;
 			stringBuilder.Clear();
 			for (var index1 = 0; index1 < stackTrace.FrameCount; ++index1)
@@ -47,8 +47,8 @@ namespace WhiteSparrow.Shared.Logging
 					var declaringType = method.DeclaringType;
 					if (declaringType != null)
 					{
-						if(channel == null)
-							channel = LogChannel.GetForTarget(declaringType);
+						// if(channel == null)
+						// 	channel = LogChannel.GetForTarget(declaringType);
 						
 						var str1 = declaringType.Namespace;
 						if (!string.IsNullOrEmpty(str1))

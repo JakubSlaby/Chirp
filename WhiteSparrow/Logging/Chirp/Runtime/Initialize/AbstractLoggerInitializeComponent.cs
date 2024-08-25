@@ -3,20 +3,14 @@ using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging.Initialize
 {
-	public abstract class AbstractLoggerInitializeComponent<T> : MonoBehaviour, IChirpLoggerInitializeComponent
-		where T : ILogger
+	public abstract class AbstractLoggerInitializeComponent : MonoBehaviour, IChirpLoggerInitializeComponent
 	{
-		public ILogger GetLoggerInstance()
-		{
-			return GetInstance();
-		}
-		
-		public abstract T GetInstance();
+		public abstract void Initialize();
 	}
 
 	public interface IChirpLoggerInitializeComponent
 	{
-		ILogger GetLoggerInstance();
+		void Initialize();
 	}
 
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]

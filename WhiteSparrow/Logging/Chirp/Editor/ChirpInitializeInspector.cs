@@ -127,7 +127,6 @@ namespace WhiteSparrow.Shared.Logging
 			
 			foreach (var type in m_ComponentTypes)
 			{
-				ExtractLoggerInfo(type, out Type loggerType, out bool showEditor);
 				var component = TargetComponent.GetComponent(type);
 				bool isEnabled = component != null;
 				bool isToggled = false;
@@ -137,7 +136,7 @@ namespace WhiteSparrow.Shared.Logging
 				using (new GUILayout.VerticalScope(Styles.LoggerFrame))
 				{
 					GUI.backgroundColor = bgColor;
-					isToggled = EditorGUILayout.ToggleLeft(loggerType.Name, isEnabled);
+					isToggled = EditorGUILayout.ToggleLeft(type.Name, isEnabled);
 				}
 				
 				if (isEnabled != isToggled)
@@ -146,7 +145,7 @@ namespace WhiteSparrow.Shared.Logging
 					continue;
 				}
 				
-				if(isEnabled && showEditor)
+				if(isEnabled )
 				{
 					if(m_InlineEditor == null || m_InlineEditor.target != component)
 						m_InlineEditor = Editor.CreateEditor(component);
@@ -185,29 +184,6 @@ namespace WhiteSparrow.Shared.Logging
 			Undo.RecordObject(TargetComponent.gameObject, "Chirp: Toggle Initialized Logger");
 		}
 
-		
-		private Type m_HelperInitializeBaseType = typeof(AbstractLoggerInitializeComponent<>);
-		private void ExtractLoggerInfo(Type initializeType, out Type loggerType, out bool showEditor)
-		{
-			showEditor = initializeType.GetCustomAttribute<ShowInitializeOptionsAttribute>() != null;
-			Type t = initializeType.BaseType;
-			while (t != null)
-			{
-				if (t.IsGenericType && t.GetGenericTypeDefinition() == m_HelperInitializeBaseType)
-				{
-					var genericArguments = t.GetGenericArguments();
-					if (genericArguments.Length > 0)
-					{
-						
-						loggerType = genericArguments[0];
-						return;
-					}
-				}
-				t = t.BaseType;
-			}
-
-			loggerType = null;
-		}
 		
 		
 		[MenuItem("Tools/Chirp Logger/Create Initializer Object", priority = 301)]
