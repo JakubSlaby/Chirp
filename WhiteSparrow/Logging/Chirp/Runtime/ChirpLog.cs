@@ -61,13 +61,15 @@ namespace WhiteSparrow.Shared.Logging
 			NullValueHandling = NullValueHandling.Include,
 			ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 		};
-		
-		public static ChirpLog AsChirpLog(this object instance, JsonSerializerSettings serializerSettings = null)
+
+		public static ChirpLog AsChirpLog(this object instance, JsonSerializerSettings serializerSettings = null) =>
+			AsChirpLog(instance, null, serializerSettings);
+		public static ChirpLog AsChirpLog(this object instance, string title, JsonSerializerSettings serializerSettings = null)
 		{
 			try
 			{
-				string json = JsonConvert.SerializeObject(instance, s_DefaultSerializerSettings);
-				ChirpLog log = ConstructLog(string.Format("```{0}\r\n{1}\r\n```", instance.GetType().Name, json));
+				string json = JsonConvert.SerializeObject(instance, serializerSettings ?? s_DefaultSerializerSettings);
+				ChirpLog log = ConstructLog(string.Format("```{0}\r\n{1}\r\n```", title ?? instance.GetType().Name, json));
 				log.m_IsObjectData = true;
 				log.m_HasMarkdown = true;
 				return log;
@@ -89,6 +91,12 @@ namespace WhiteSparrow.Shared.Logging
 			return log;
 		}
 
+		public static ChirpLog AsMarkdownLog(this string message)
+		{
+			var log = AsChirpLog(message);
+			log.m_HasMarkdown = true;
+			return log;
+		}
 		public static ChirpLog AsMarkdown(this ChirpLog log)
 		{
 			log.m_HasMarkdown = true;

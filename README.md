@@ -2,14 +2,19 @@
 
 
 ## Overview
-Simple Unity logging framework easily exandable for custom functionality
-- Log Channels for easy message categorisation
-- Customisable Loggers allow for custom processing
-- Default Unity console integration
+Simple Unity logging framework easily extendable for custom functionality
+- Channels (loggers) for easy message categorisation
+- Custom outputs for exporting logs to different targets
+  - Unity console export for now
+- Markdown support for log formatting in Unity Console
+- Simplified object property rendering
 
 ## Installation
 Best way to install Chirp is to download the latest package from [Releases](https://github.com/JakubSlaby/Chirp/releases), full source code is included in the UnityPackage.
 Import the package in to your Unity project through `Assets/Import Package/Custom Package`.
+
+## Setup
+The framework needs to be enabled for each desired target platform through the settings window. You can find it by opening `Tools/Chirp Framework/Chirp Settings` or by navigating directly to Project Settings window.
 
 ## Initialisation through a component
 To quickly initialise the logging framework you can create a Chirp Initializer game object in your scene.
@@ -17,58 +22,30 @@ Simply go to `Tools/Chirp Logger/Create Initializer Object`.
 
 ![Log Example](Images/package-component.jpg)
 
-Enable the available loggers (by default it comes with UnityConsoleLogger) and enjoy!
+Enable the available components (by default it comes with UnityConsoleLogger) and enjoy!
 
 ### Initialisation From Code
-The framework needs to be enabled for each desired target platform through the settings window. You can find it by opening `Tools/Chirp Framework/Chirp Settings` or by navigating directly to Project Settings window.
+If you don't want to use the Component initialisation method you can register desired outputs from code.
+```csharp
+public class Bootstrap : MonoBehaviour
+{
+  private void Awake()
+  {
+    Chirp.AddOutput<UnityConsoleOutput>();
+  }
+}
+```
 
-To initialize the framework in runtime you can call `Chirp.Initialize()` anywhere from your code.
 
 ```csharp
 Chirp.Initialize(new UnityConsoleLogger(), new QuantumConsoleLogger());
 ```
-> Examples use an additional integration with AssetStore packages: [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-128881), [SRDebugger](https://assetstore.unity.com/packages/tools/gui/srdebugger-console-tools-on-device-27688)
 
 Or use the `Chirp Initializer` GameObject Component to do that automatically. You can create it through `Tools/Chirp Logger/Create Initializer Object`.
 
 ### Logging
 The default log API with simple message and stack trace functionality.
-```csharp
-Chirp.Debug("Debug Message"); // Detailed logs, best for cases like logging rpc responses or method outputs.
-Chirp.Log("Log Message"); // Typical log message, most common use case.
-Chirp.Info("Info Message"); // State change or any significant message that would have less detailed data.
-Chirp.Warning("Warning Message");
-Chirp.Error("Error message");
-Chirp.Exception(new Exception(), "Exception Message");
-```
-![Log Example](Images/examples-default.png)
 
-### Channels
-Add Log Channel identifier for specifying the source or context of the log so that it's easily recognisable in console.
-```csharp
-Chirp.DebugCh("Inventory","Debug Message");
-Chirp.LogCh("ConnectionResolver", "Log Message");
-Chirp.InfoCh("SaveManager", "Info Message");
-Chirp.WarningCh("PlayerController","Warning Message");
-Chirp.ErrorCh("SaveManager","Error message");
-Chirp.ExceptionCh( "PlayerController", new Exception(), "Exception Message");
-```
-![Log Example](Images/examples-channel.png)
-
-> Quantum Console needs aditional integration for custom formatting, filtering and Stack Trace lookups.<br/>
-> SRDebugger has built in filtering by text.
-
-#### Automatic channels
-You can automatically detect channels based on class Types that are found in the stack trace. To tag a type as a LogChannel all you need to do is add the `[LogChannel]` attribute and generate list of channels.
-```csharp
-[LogChannel]
-public class PlayerController
-{
-  // ...
-}
-```
-After you change which types are tagged with the [LogChannel] attribute, you will need to generate a helper class that will hold the list.
-You can find the list generator under `Tools/Chirp Logger/Generate Log Channels List` menu.
 
 ## Conditional Compilation
 All chirp logging API methods are compiled conditionally and controlled through Player Script Define Symbols.

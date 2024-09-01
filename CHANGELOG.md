@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2024-08-26
+### Changed
+- Updated readme
+- Big changes to the structure and way of interacting with the system.
+- Use Chirp.Logger.Log/Info/Warn... for logging on the default channel.
+- Use Chirp.Channels.Create() to create a specific channel logger.
+
+### Added
+- Strings can now be converted to ChirpLogs by calling `"Some string".AsChirpLog()` and provide extra options.
+- `"Some string".AsChirpLog().AsMarkdown()` will indicate that the logs have any of the supported markdown tags
+- Use ChirpLogs when logging `Chirp.Logger.Log("Some string".AsChirpLog().AsMarkdown())`
+- Use `Chirp.Logger.Log("Some string".AsMarkdownLog())`
+- You can use any object and convert it to a json representation in markdown `Chirp.Logger.Log(someObjectInstance.AsChirpLog())`
+
 ## [0.9.1] - 2023-05-24
 ### Added
 - LogChannel instance can now be used to invoke specific logs with that Channel

@@ -73,6 +73,8 @@ namespace WhiteSparrow.Shared.Logging.Core
             {
                 output.Ingest(log);
             }
+            
+            log.Dispose();
         }
 
         public void PopulateStackTrace(ChirpLog log)
@@ -80,6 +82,7 @@ namespace WhiteSparrow.Shared.Logging.Core
             StackTrace st = new StackTrace(2, true);
             if(st.FrameCount == 0)
                 return;
+            
             
         }
 
