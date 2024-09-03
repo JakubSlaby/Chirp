@@ -1,18 +1,16 @@
 {
     "name": "com.jakubslaby.chirp",
     "displayName": "Chirp - Unity Logging",
-    "description": "Simple Unity logging framework easily exandable for custom functionality",
+    "description": "Simple Unity logging framework easily extendable for custom functionality",
     "author": "Jakub Slaby <jakubslaby@gmail.com>",
     "tags": [],
-    "version": "0.9.2",
-    "dependencies": {},
+    "version": "0.10.0",
+    "dependencies": {
+        "com.unity.nuget.newtonsoft-json" : "3.2.1"
+    },
     "repository": {
         "type": "git",
         "url": "git://github.com/JakubSlaby/Chirp.git"
-    },
-    "scripts": {
-        "prepublishOnly": "node package/prepublish.js",
-        "postpublish": "node package/postpublish.js"
     },
     "bugs": {
         "url": "https://github.com/JakubSlaby/Chirp/issues"

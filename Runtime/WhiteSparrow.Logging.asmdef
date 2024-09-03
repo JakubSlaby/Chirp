@@ -1,0 +1,22 @@
+{
+    "name": "WhiteSparrow.Logging",
+    "rootNamespace": "",
+    "references": [
+        "ZString"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.cysharp.zstring",
+            "expression": "",
+            "define": "ZSTRING"
+        }
+    ],
+    "noEngineReferences": false
+}
