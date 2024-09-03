@@ -216,7 +216,7 @@ namespace WhiteSparrow.Shared.Logging
 			return provider;
 		}
 		 
-		[MenuItem("Tools/Chirp Logger/Chirp Settings", priority = 290)]
+		[MenuItem("Tools/White Sparrow/Chirp Logger/Chirp Settings", priority = 290)]
 		internal static void ShowWindow()
 		{
 			SettingsService.OpenProjectSettings("Project/White Sparrow/Chirp Logging Framework");

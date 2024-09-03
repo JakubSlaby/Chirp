@@ -115,12 +115,21 @@ namespace WhiteSparrow.Shared.Logging.Core
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
             
-            return CreateInternal(name, s_LoggerId++);
+            return CreateInternal(name, s_LoggerId++, null);
         }
-        
-        private ChirpLogger CreateInternal(string name, int id)
+
+        public ChirpLogger Create(string name, Color color)
         {
-            ChirpLogger logger = new ChirpLogger(name, id);
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentNullException(nameof(name));
+            
+            return CreateInternal(name, s_LoggerId++, color);
+        }
+
+     
+        private ChirpLogger CreateInternal(string name, int id, Color? color = null)
+        {
+            ChirpLogger logger = color.HasValue ? new ChirpLogger(name, id, color.Value) :  new ChirpLogger(name, id);
             return logger;
         }
 
@@ -140,6 +149,7 @@ namespace WhiteSparrow.Shared.Logging.Core
     {
         ChirpLogger Default { get; }
         ChirpLogger Create(string name);
+        ChirpLogger Create(string name, Color color);
         
     }
 

@@ -11,7 +11,7 @@ namespace WhiteSparrow.Shared.Logging
 {
     public static class LoggingMarkdownUtil
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         
         private const string s_PatternItalic =  @"(?'iW'(?:(?<!\*)\*(?!\*)(?'i'.+?)(?<!\*)\*(?!\*)|(?<!_)_(?!_)(?'i'.+?)(?<!_)_(?!_)))";
         private const string s_PatternBold =  @"(?'bW'(?:(?<!\*)\*\*(?!\*)(?'b'.+?)(?<!\*)\*\*(?!\*)|(?<!_)__(?!_)(?'b'.+?)(?<!_)__(?!_)))";
@@ -22,13 +22,13 @@ namespace WhiteSparrow.Shared.Logging
         private const string s_PatternColor = @"(\[c:(?'colorS'[a-zA-Z0-9#]+)\])|(?'colorE'\[\/c\])";
         private const string s_PatternSize = @"(\[s:(?'sizeS'[a-zA-Z0-9#]+)\])|(?'sizeE'\[\/s\])";
         
-        [UnityEditor.MenuItem("Tools/Chirp Logger/Development/Markdown RegEx")]
+        // [UnityEditor.MenuItem("Tools/White Sparrow/Chirp Logger/Development/Markdown RegEx")]
         private static void LogFullRegEx()
         {
             Debug.Log($"{s_PatternHeader}|{s_PatternCodeBlock}|{s_PatternCodeInline}|{s_PatternItalicBold}|{s_PatternBold}|{s_PatternItalic}|{s_PatternColor}|{s_PatternSize}");
         }
 
-        [UnityEditor.MenuItem("Tools/Chirp Logger/Development/Markdown Test")]
+        // [UnityEditor.MenuItem("Tools/White Sparrow/Chirp Logger/Development/Markdown Test")]
         private static void TestMarkdown()
         {
             string s = @"# Testing Headers
@@ -44,13 +44,10 @@ sdakdhakj
 {""fruit"":""Apple"",""size"":""Large"",""color"":""Red""}
 ```
 ";
-
-        
-
-            string output = Parse(s);
+            string output = LoggingMarkdownUtil.Parse(s);
             Debug.Log(output);
         }
-        #endif
+#endif
 
         [ThreadStatic] private static Stack<StringBuilder> s_StringBuilderStack;
 

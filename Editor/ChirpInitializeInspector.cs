@@ -186,7 +186,7 @@ namespace WhiteSparrow.Shared.Logging
 
 		
 		
-		[MenuItem("Tools/Chirp Logger/Create Initializer Object", priority = 301)]
+		[MenuItem("Tools/White Sparrow/Chirp Logger/Create Initializer Object", priority = 301)]
 		private static void CreateObject(MenuCommand menuCommand)
 		{
 			Undo.IncrementCurrentGroup();

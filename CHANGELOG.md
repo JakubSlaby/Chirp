@@ -13,10 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Strings can now be converted to ChirpLogs by calling `"Some string".AsChirpLog()` and provide extra options.
-- `"Some string".AsChirpLog().AsMarkdown()` will indicate that the logs have any of the supported markdown tags
+- `"Some string".AsChirpLog().AsMarkdown()` will indicate that the logs have any of the supported Markdown tags
 - Use ChirpLogs when logging `Chirp.Logger.Log("Some string".AsChirpLog().AsMarkdown())`
 - Use `Chirp.Logger.Log("Some string".AsMarkdownLog())`
 - You can use any object and convert it to a json representation in markdown `Chirp.Logger.Log(someObjectInstance.AsChirpLog())`
+
+### Removed
+- All "Ch" APIs: `DebugCh`, `LogCh`, `InfoCh`, `WarningCh`, `ErrorCh`, `ExceptionCh` - moving towards dedicated channel loggers
 
 ## [0.9.1] - 2023-05-24
 ### Added
