@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.Build;
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -60,7 +61,7 @@ namespace WhiteSparrow.Shared.Logging
 
 		public static void SetTargetGroupChirpEnabled(BuildTargetGroup group, bool enabled)
 		{
-			string currentScriptDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(group);
+			string currentScriptDefines = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(group));
 			List<string> splitScriptDefines = new List<string>(currentScriptDefines.Split(';'));
 			if (enabled && splitScriptDefines.Contains("CHIRP"))
 				return;
@@ -70,12 +71,12 @@ namespace WhiteSparrow.Shared.Logging
 				splitScriptDefines.Remove("CHIRP");
 
 			string targetScriptDefines = String.Join(";", splitScriptDefines);
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(group, targetScriptDefines);
+			PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(group), targetScriptDefines);
 		}
 
 		public static void SetTargetGroupLogLevel(BuildTargetGroup group, int level)
 		{
-			string currentScriptDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(group);
+			string currentScriptDefines = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(group));
 			string logLevelString = level == (int) LogLevel.Exception ? "" : $"LogLevel{level}";
 			var match = s_LogLevelRegex.Match(currentScriptDefines);
 			if (match.Success)
@@ -83,7 +84,7 @@ namespace WhiteSparrow.Shared.Logging
 			else if(level != (int)LogLevel.Exception)
 				currentScriptDefines += $";{logLevelString}";
 			
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(group, currentScriptDefines);
+			PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(group), currentScriptDefines);
 		}
 		
 	}

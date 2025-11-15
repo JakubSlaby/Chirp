@@ -31,8 +31,7 @@ namespace WhiteSparrow.Shared.Logging
         // [UnityEditor.MenuItem("Tools/White Sparrow/Chirp Logger/Development/Markdown Test")]
         private static void TestMarkdown()
         {
-            string s = @"# Testing Headers
-## And Sub Headers
+            string s = @"# Testing Headers\n## And Sub Headers
 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
 
 ```

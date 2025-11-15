@@ -4,7 +4,7 @@
     "description": "Simple Unity logging framework easily extendable for custom functionality",
     "author": "Jakub Slaby <jakubslaby@gmail.com>",
     "tags": [],
-    "version": "0.10.0",
+    "version": "0.10.1",
     "dependencies": {
         "com.unity.nuget.newtonsoft-json" : "3.2.1"
     },

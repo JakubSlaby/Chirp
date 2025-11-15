@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging
@@ -89,7 +90,7 @@ namespace WhiteSparrow.Shared.Logging
 			m_BuildTargetGroupToLabel.Clear();
 			foreach (var buildTargetGroup in m_AvailableBuildTargetGroups)
 			{
-				string scriptingDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+				string scriptingDefines = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup));
 				m_BuildTargetGroupToChirpEnabled.Add(buildTargetGroup, scriptingDefines.Contains("CHIRP"));
 				m_BuildTargetGroupToChirpLevel.Add(buildTargetGroup, ChirpBuildUtils.GetLogLevelFromScriptDefines(scriptingDefines));
 				string groupName = buildTargetGroup.ToString();
@@ -134,9 +135,8 @@ namespace WhiteSparrow.Shared.Logging
 		{
 			var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
 			var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(activeBuildTarget);
-
-			var enabledIconContent = EditorGUIUtility.IconContent("d_winbtn_mac_max");
-			var disabledIconContent = EditorGUIUtility.IconContent("d_winbtn_mac_close");
+			var enabledIconContent = EditorGUIUtility.IconContent("d_GreenCheckmark");
+			var disabledIconContent = EditorGUIUtility.IconContent("d_winbtn_mac_close_a");
 			
 			GUILayout.Label("Platform Compilation Settings", Styles.Header);
 			EditorGUILayout.HelpBox("Configure logging for each target platform. You can completely disable logging on selected platforms and define which logging level will be active.", MessageType.Info);
