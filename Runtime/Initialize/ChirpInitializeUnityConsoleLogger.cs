@@ -12,7 +12,7 @@ namespace WhiteSparrow.Shared.Logging.Initialize
 	{
 		public override void Initialize()
 		{
-			Chirp.AddOutput<UnityConsoleOutput>();
+			Chirp.AddOutput<UnityConsolePlugin>();
 		}
 	}
 }

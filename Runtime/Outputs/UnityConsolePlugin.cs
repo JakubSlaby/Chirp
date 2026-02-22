@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Text;
 using UnityEngine;
 using WhiteSparrow.Shared.Logging.Core;
@@ -8,13 +7,13 @@ using Object = UnityEngine.Object;
 
 namespace WhiteSparrow.Shared.Logging.Outputs
 {
-    public class UnityConsoleOutput : AbstractChirpOutput, IChirpInput, ILogHandler
+    public class UnityConsolePlugin : AbstractChirpOutput, IChirpInput, ILogHandler
     {
         private ILogHandler m_DefaultUnityLogHandler;
         private IChirpReceiver m_Receiver;
         private ChirpLogger m_Channel;
         
-        public UnityConsoleOutput()
+        public UnityConsolePlugin()
         {
             m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
         }
