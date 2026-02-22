@@ -2,17 +2,34 @@
 using System.IO;
 using System.Text;
 using UnityEngine;
+using WhiteSparrow.Shared.Logging.Core;
+using WhiteSparrow.Shared.Logging.Inputs;
+using Object = UnityEngine.Object;
 
 namespace WhiteSparrow.Shared.Logging.Outputs
 {
-    public class UnityConsoleOutput : AbstractChirpOutput
+    public class UnityConsoleOutput : AbstractChirpOutput, IChirpInput, ILogHandler
     {
         private ILogHandler m_DefaultUnityLogHandler;
+        private IChirpReceiver m_Receiver;
+        private ChirpLogger m_Channel;
+        
         public UnityConsoleOutput()
         {
             m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
         }
         
+        void IChirpInput.Initialize(IChirpReceiver receiver)
+        {
+            m_Receiver = receiver;
+            m_Channel = Chirp.Channels.Create("Unity");
+            Debug.unityLogger.logHandler = this;
+        }
+        
+        protected override void OnInitialize()
+        {
+        }
+
         protected override bool Filter(ChirpLog logEvent)
         {
             return true;
@@ -21,7 +38,12 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         [HideInCallstack]
         protected override void Process(ChirpLog logEvent)
         {
-            UnityEngine.Debug.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.Level), LogOption.NoStacktrace,null, "{0}", FormatConsoleLog(logEvent));
+            m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.Level), logEvent.Context, "{0}", FormatConsoleLog(logEvent));
+        }
+
+        protected override void OnDispose()
+        {
+            m_DefaultUnityLogHandler = null;
         }
 
         [ThreadStatic]
@@ -53,6 +75,28 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             }
 
             return s_HelperFormatBuilder.ToString();
+        }
+
+
+        [HideInCallstack]
+        void ILogHandler.LogFormat(LogType logType, Object context, string format, params object[] args)
+        {
+            var log = ChirpLogUtil.ConstructLog(string.Format(format, args), context);
+            log.Level = UnityLogUtil.FromUnityLogType(logType);
+            log.Source = m_Channel;
+            m_Receiver.Submit(log);
+            
+            
+        }
+
+        [HideInCallstack]
+        void ILogHandler.LogException(Exception exception, Object context)
+        {
+            var log = ChirpLogUtil.ConstructLog(exception.Message, context);
+            log.Source = m_Channel;
+            log.StackTrace = exception.StackTrace;
+            log.Level = LogLevel.Exception;
+            m_Receiver.Submit(log);
         }
     }
     

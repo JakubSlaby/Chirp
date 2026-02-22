@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace WhiteSparrow.Shared.Logging.Core
 {
@@ -13,7 +14,7 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 		[HideInCallstack]
-		public void Debug(string message) => Debug(ChirpLogUtil.ConstructLog(message));
+		public void Debug(string message, Object context = null) => Debug(ChirpLogUtil.ConstructLog(message, context));
 
 #if CHIRP
 		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
@@ -22,7 +23,7 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 		[HideInCallstack]
-		public void Log(string message) => Log(ChirpLogUtil.ConstructLog(message));
+		public void Log(string message, Object context = null) => Log(ChirpLogUtil.ConstructLog(message, context));
 
 #if CHIRP
 		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
@@ -32,7 +33,7 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 		[HideInCallstack]
-		public void Info(string message) => Info(ChirpLogUtil.ConstructLog(message));
+		public void Info(string message, Object context = null) => Info(ChirpLogUtil.ConstructLog(message, context));
 
 #if CHIRP
 		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
@@ -43,7 +44,7 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 		[HideInCallstack]
-		public void Warning(string message) => Warning(ChirpLogUtil.ConstructLog(message));
+		public void Warning(string message, Object context = null) => Warning(ChirpLogUtil.ConstructLog(message, context));
 		
 #if CHIRP
 		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
@@ -55,11 +56,11 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 		[HideInCallstack]
-		public void Assert(bool condition, string message)
+		public void Assert(bool condition, string message, Object context = null)
 		{
 			if (condition)
 				return;
-			Assert(ChirpLogUtil.ConstructLog(message));
+			Assert(ChirpLogUtil.ConstructLog(message,context));
 		}
 
 
@@ -74,7 +75,7 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 	    [HideInCallstack]
-	    public void Error(string message) => Error(ChirpLogUtil.ConstructLog(message));
+	    public void Error(string message, Object context = null) => Error(ChirpLogUtil.ConstructLog(message, context));
 		
 		
 #if CHIRP
@@ -90,9 +91,9 @@ namespace WhiteSparrow.Shared.Logging.Core
 		[Conditional("CHIRP")]
 #endif
 		[HideInCallstack]
-		public void Exception(Exception exception)
+		public void Exception(Exception exception, Object context = null)
 		{
-			var log = ChirpLogUtil.ConstructLog(exception.Message);
+			var log = ChirpLogUtil.ConstructLog(exception.Message, context);
 			log.Source = this;
 			log.StackTrace = exception.StackTrace;
 			log.Level = LogLevel.Exception;

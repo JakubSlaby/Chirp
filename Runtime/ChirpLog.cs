@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using WhiteSparrow.Shared.Logging.Core;
+using Object = UnityEngine.Object;
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -13,6 +14,14 @@ namespace WhiteSparrow.Shared.Logging
 		public string StackTrace { get; internal set; }
 		public DateTime TimeStamp { get; internal set; }
 		public ChirpLogger Source { get; internal set; }
+
+		private WeakReference<Object> m_Context;
+
+		public Object Context
+		{
+			get => m_Context != null && m_Context.TryGetTarget(out var target) && target != null ? target : null; 
+			internal set => m_Context = value !=  null ? new WeakReference<Object>(value) : null;
+		}
 		
 		public IChirpLogOptions Options => this;
 		
@@ -28,6 +37,7 @@ namespace WhiteSparrow.Shared.Logging
 		
 		public void Dispose()
 		{
+			m_Context = null;
 			Message = null;
 			Source = null;
 			StackTrace = null;
@@ -44,12 +54,13 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class ChirpLogUtil
 	{
-		internal static ChirpLog ConstructLog(string message) => ConstructLog(LogLevel.Log, message);
-		internal static ChirpLog ConstructLog(LogLevel level, string message)
+		internal static ChirpLog ConstructLog(string message, Object context) => ConstructLog(LogLevel.Log, message, context);
+		internal static ChirpLog ConstructLog(LogLevel level, string message, Object context)
 		{
 			ChirpLog log = new ChirpLog();
 			log.Message = message;
 			log.Level = level;
+			log.Context = context;
 			
 			return log;
 		}
@@ -69,20 +80,20 @@ namespace WhiteSparrow.Shared.Logging
 			try
 			{
 				string json = JsonConvert.SerializeObject(instance, serializerSettings ?? s_DefaultSerializerSettings);
-				ChirpLog log = ConstructLog(string.Format("```{0}\r\n{1}\r\n```", title ?? instance.GetType().Name, json));
+				ChirpLog log = ConstructLog($"```{title ?? instance.GetType().Name}\r\n{json}\r\n```", instance as Object);
 				log.m_IsObjectData = true;
 				log.m_HasMarkdown = true;
 				return log;
 			}
 			catch (Exception e)
 			{
-				return AsChirpLog(string.Format("{0}\r\n{1}", e.Message, e.StackTrace));
+				return AsChirpLog($"{e.Message}\r\n{e.StackTrace}");
 			}
 		}
 		
 		public static ChirpLog AsChirpLog(this string message)
 		{
-			return ConstructLog(message);
+			return ConstructLog(message, null);
 		}
 
 		public static ChirpLog AddStackTrace(this ChirpLog log)
@@ -100,6 +111,12 @@ namespace WhiteSparrow.Shared.Logging
 		public static ChirpLog AsMarkdown(this ChirpLog log)
 		{
 			log.m_HasMarkdown = true;
+			return log;
+		}
+
+		public static ChirpLog WithContext(this ChirpLog log, Object context)
+		{
+			log.Context = context;
 			return log;
 		}
 		

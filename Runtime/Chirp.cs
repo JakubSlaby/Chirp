@@ -17,7 +17,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.10.1";
+		public const string Version = "0.11.1";
 
 		internal static ChirpImpl Impl { get; private set; }
 
@@ -37,8 +37,15 @@ namespace WhiteSparrow.Shared.Logging
 			where T : class, IChirpInput, new()
 			=> Impl.AddInput<T>();
 		
+		public static void AddInput(IChirpInput input)
+			=> Impl.AddInput(input);
+		
 		public static T AddOutput<T>()
 			where T : class, IChirpOutput, new()
 			=> Impl.AddOutput<T>();
+		
+		
+		public static void AddOutput(IChirpOutput output)
+			=> Impl.AddOutput(output);
 	}
 }

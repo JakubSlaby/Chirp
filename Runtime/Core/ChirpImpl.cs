@@ -60,6 +60,12 @@ namespace WhiteSparrow.Shared.Logging.Core
             
             return output;
         }
+
+        public void RemoveOutput(IChirpOutput output)
+        {
+            m_Outputs.Remove(output);
+            m_OutputsCached = m_Outputs.ToArray();
+        }
         
         [HideInCallstack]
         public void Submit(ChirpLog log)
