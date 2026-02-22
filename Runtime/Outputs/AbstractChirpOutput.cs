@@ -10,10 +10,7 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             OnInitialize();
         }
 
-        protected virtual void OnInitialize()
-        {
-            
-        }
+        protected abstract void OnInitialize();
 
         [HideInCallstack]
         void IChirpOutput.Ingest(ChirpLog logEvent)
@@ -44,7 +41,6 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             OnDispose();
         }
 
-        protected virtual void OnDispose()
-        {}
+        protected abstract void OnDispose();
     }
 }
