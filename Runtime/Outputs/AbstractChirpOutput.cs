@@ -1,11 +1,12 @@
 ﻿using System;
 using UnityEngine;
+using WhiteSparrow.Shared.Logging.Core;
 
 namespace WhiteSparrow.Shared.Logging.Outputs
 {
-    public abstract class AbstractChirpOutput : IChirpOutput, IDisposable
+    public abstract class AbstractChirpOutput : AbstractChirpPlugin, IChirpOutput
     {
-        public void Initialize()
+        public void InitializeOutput()
         {
             OnInitialize();
         }
@@ -28,19 +29,5 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         [HideInCallstack]
         protected abstract void Process(ChirpLog logEvent);
 
-        ~AbstractChirpOutput()
-        {
-            Dispose();
-        }
-
-        private bool m_Disposed;
-        public void Dispose()
-        {
-            if (m_Disposed)
-                return;
-            OnDispose();
-        }
-
-        protected abstract void OnDispose();
     }
 }

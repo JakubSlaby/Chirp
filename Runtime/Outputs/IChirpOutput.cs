@@ -1,10 +1,10 @@
 ﻿using System;
+using WhiteSparrow.Shared.Logging.Core;
 
 namespace WhiteSparrow.Shared.Logging.Outputs
 {
-    public interface IChirpOutput : IDisposable
+    public interface IChirpOutput : IChirpPlugin
     {
-        void Initialize();
         void Ingest(ChirpLog logEvent);
     }
 

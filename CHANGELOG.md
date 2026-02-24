@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-02-23
+Better handling of plugin lifecycles.
+### Added
+- Plugin lifecycle handling
+- `Chirp.AddPlugin` and `Chirp.RemovePlugin` API for managing plugins
+
+### Changed
+- `IChirpInput` and `IChirpOutput` now are inheriting from IChirpPlugin
+- `AbstractChirpPlugin` now has base functionality for disposal handling
+
+### Removed
+- Removed `Chirp.AddInput` and `Chirp.AddOutput` API in favour of `Chirp.AddPlugin`
+
+
 ## [0.11.1] - 2026-02-22
 Tighter Unity Integration
 ### Added

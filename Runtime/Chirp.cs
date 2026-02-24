@@ -1,6 +1,4 @@
 ﻿using WhiteSparrow.Shared.Logging.Core;
-using WhiteSparrow.Shared.Logging.Inputs;
-using WhiteSparrow.Shared.Logging.Outputs;
 
 namespace WhiteSparrow.Shared.Logging
 {
@@ -17,7 +15,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.11.1";
+		public const string Version = "0.12.0";
 
 		internal static ChirpImpl Impl { get; private set; }
 
@@ -33,19 +31,15 @@ namespace WhiteSparrow.Shared.Logging
 
 		public static ChirpLogger Logger => Channels.Default;
 
-		public static T AddInput<T>()
-			where T : class, IChirpInput, new()
-			=> Impl.AddInput<T>();
+		public static T AddPlugin<T>()
+			where T : class, IChirpPlugin, new()
+			=> Impl.AddPlugin<T>();
 		
-		public static void AddInput(IChirpInput input)
-			=> Impl.AddInput(input);
-		
-		public static T AddOutput<T>()
-			where T : class, IChirpOutput, new()
-			=> Impl.AddOutput<T>();
+		public static void AddPlugin(IChirpPlugin plugin)
+			=> Impl.AddPlugin(plugin);
 		
 		
-		public static void AddOutput(IChirpOutput output)
-			=> Impl.AddOutput(output);
+		public static void RemovePlugin(IChirpPlugin plugin)
+			=> Impl.RemovePlugin(plugin);
 	}
 }

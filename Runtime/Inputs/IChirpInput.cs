@@ -3,8 +3,8 @@ using WhiteSparrow.Shared.Logging.Core;
 
 namespace WhiteSparrow.Shared.Logging.Inputs
 {
-    public interface IChirpInput : IDisposable
+    public interface IChirpInput : IChirpPlugin
     {
-        void Initialize(IChirpReceiver receiver);
+        void InitializeInput(IChirpReceiver receiver);
     }
 }

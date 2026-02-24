@@ -5,26 +5,32 @@ namespace WhiteSparrow.Shared.Logging.Core
 {
     public partial class ChirpLogger : IDisposable
     {
-	    public readonly int LoggerId;
 	    public readonly string Name;
+	    internal readonly bool UseChannel;
 	    public readonly Color ChannelColor;
 	    public readonly string ColorHtml;
 
 	    public readonly ChirpStyle Style;
-	    
-	    internal ChirpLogger(string name, int id)
+
+	    internal ChirpLogger(string name, bool useChannel)
 	    {
 		    Name = name;
-		    LoggerId = id;
+		    UseChannel = useChannel;
+	    }
+	    
+	    public ChirpLogger(string name)
+	    {
+		    Name = name;
+		    UseChannel = true;
 		    ChannelColor = CreateColorHash(name);
 		    ColorHtml = ColorUtility.ToHtmlStringRGB(ChannelColor);
 		    Style = new ChirpStyle();
 	    }
 	    
-	    internal ChirpLogger(string name, int id, Color color)
+	    public ChirpLogger(string name, Color color)
         {
 	        Name = name;
-	        LoggerId = id;
+	        UseChannel = true;
 	        ChannelColor = color;
 	        ColorHtml = ColorUtility.ToHtmlStringRGB(ChannelColor);
 	        Style = new ChirpStyle();

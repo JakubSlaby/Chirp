@@ -8,9 +8,6 @@ namespace WhiteSparrow.Shared.Logging.Core
 {
 	public partial class ChirpLogger
 	{
-
-		
-		
 #if CHIRP
 		[Conditional("LogLevel0"), Conditional("LogLevelDebug")]
 #else

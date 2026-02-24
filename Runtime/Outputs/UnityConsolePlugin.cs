@@ -18,10 +18,10 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
         }
         
-        void IChirpInput.Initialize(IChirpReceiver receiver)
+        void IChirpInput.InitializeInput(IChirpReceiver receiver)
         {
             m_Receiver = receiver;
-            m_Channel = Chirp.Channels.Create("Unity");
+            m_Channel = new ChirpLogger("Unity");
             Debug.unityLogger.logHandler = this;
         }
         
@@ -42,6 +42,8 @@ namespace WhiteSparrow.Shared.Logging.Outputs
 
         protected override void OnDispose()
         {
+            if (Debug.unityLogger.logHandler == this)
+                Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
             m_DefaultUnityLogHandler = null;
         }
 
@@ -54,7 +56,7 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             else
                 s_HelperFormatBuilder.Clear();
 
-            if (logEvent.Source.LoggerId != 0)
+            if (logEvent.Source.UseChannel)
             {
                 s_HelperFormatBuilder.Append('[');
                 s_HelperFormatBuilder.AppendFormat("<color=#{0}>", logEvent.Source.ColorHtml);
