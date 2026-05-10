@@ -16,6 +16,7 @@ namespace WhiteSparrow.Shared.Logging.Core
 	    {
 		    Name = name;
 		    UseChannel = useChannel;
+		    Style = new ChirpStyle();
 	    }
 	    
 	    public ChirpLogger(string name)
