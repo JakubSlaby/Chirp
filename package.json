@@ -2,9 +2,9 @@
     "name": "com.jakubslaby.chirp",
     "displayName": "Chirp - Unity Logging",
     "description": "Simple Unity logging framework easily extendable for custom functionality",
-    "author": "Jakub Slaby <jakubslaby@gmail.com>",
+    "author": "Jakub Slaby",
     "tags": [],
-    "version": "0.12.0",
+    "version": "0.12.1",
     "dependencies": {
         "com.unity.nuget.newtonsoft-json" : "3.2.1"
     },

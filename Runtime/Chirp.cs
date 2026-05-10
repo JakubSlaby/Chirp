@@ -15,7 +15,7 @@ namespace WhiteSparrow.Shared.Logging
 
 	public static class Chirp
 	{
-		public const string Version = "0.12.0";
+		public const string Version = "0.12.1";
 
 		internal static ChirpImpl Impl { get; private set; }
 
