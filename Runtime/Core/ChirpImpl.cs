@@ -101,7 +101,7 @@ namespace WhiteSparrow.Shared.Logging.Core
             if (log.StackTrace != null)
                 return;
 
-            log.StackTrace = LoggingStackTraceUtil.FormatUnityStackTrace(new StackTrace(true));
+            log.StackTrace = LoggingStackTraceUtil.ExtractStackTrace();
         }
 
         public void Dispose()

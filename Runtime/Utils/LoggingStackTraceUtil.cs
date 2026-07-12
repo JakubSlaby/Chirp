@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging
@@ -9,6 +10,9 @@ namespace WhiteSparrow.Shared.Logging
 	public static class LoggingStackTraceUtil
 	{
 		private const string k_HiddenNamespace = "WhiteSparrow.Shared.Logging";
+
+		private static readonly ProfilerMarker s_CaptureStackTraceMarker = new ProfilerMarker("LoggingStackTraceUtil.CaptureStackTrace");
+		private static readonly ProfilerMarker s_FormatUnityStackTraceMarker = new ProfilerMarker("LoggingStackTraceUtil.FormatUnityStackTrace");
 
 		[ThreadStatic]
 		private static StringBuilder s_StackTraceBuilderThreadStatic;
@@ -34,9 +38,25 @@ namespace WhiteSparrow.Shared.Logging
 				s_ProjectPath = s_ProjectPath.Substring(0, i);
 			s_ProjectPath = s_ProjectPath.Replace('/', Path.DirectorySeparatorChar);
 		}
+		
+		public static string ExtractStackTrace()
+		{
+			using var _ = s_CaptureStackTraceMarker.Auto();
+			var stackTrace = CaptureStackTrace();
+			return FormatUnityStackTrace(stackTrace);
+		}
+
+		[HideInCallstack]
+		public static StackTrace CaptureStackTrace()
+		{
+			using var _ = s_CaptureStackTraceMarker.Auto();
+			return new StackTrace(true);
+		}
 
 		public static string FormatUnityStackTrace(StackTrace stackTrace)
 		{
+			using var _ = s_FormatUnityStackTraceMarker.Auto();
+
 			var stringBuilder = s_StackTraceBuilder;
 			stringBuilder.Clear();
 			for (var index1 = 0; index1 < stackTrace.FrameCount; ++index1)

@@ -113,7 +113,10 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             var log = ChirpLogUtil.ConstructLog(string.Format(format, args), context);
             log.Level = UnityLogUtil.FromUnityLogType(logType);
             log.Source = m_Channel;
-            log.StackTrace = LoggingStackTraceUtil.FormatUnityStackTrace(new System.Diagnostics.StackTrace(true));
+            if (log.Level >= LogLevel.Assert)
+            {
+                log.StackTrace = LoggingStackTraceUtil.ExtractStackTrace();
+            }
             m_Receiver.Submit(log);
         }
 
