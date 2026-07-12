@@ -8,6 +8,8 @@ namespace WhiteSparrow.Shared.Logging
 {
 	public static class LoggingStackTraceUtil
 	{
+		private const string k_HiddenNamespace = "WhiteSparrow.Shared.Logging";
+
 		[ThreadStatic]
 		private static StringBuilder s_StackTraceBuilderThreadStatic;
 
@@ -44,7 +46,7 @@ namespace WhiteSparrow.Shared.Logging
 				if (method != null)
 				{
 					var declaringType = method.DeclaringType;
-					if (declaringType != null)
+					if (declaringType != null && !IsHidden(declaringType, method))
 					{
 						var str1 = declaringType.Namespace;
 						if (!string.IsNullOrEmpty(str1))
@@ -79,12 +81,9 @@ namespace WhiteSparrow.Shared.Logging
 							(!(method.Name == "print") || !(declaringType.Name == "MonoBehaviour") || !(declaringType.Namespace == "UnityEngine")))
 						{
 							stringBuilder.Append(" (at ");
-							if (s_ProjectPath != null)
-							{
-								if (str2.StartsWith(s_ProjectPath))
-									str2 = str2.Substring(s_ProjectPath.Length);
-								stringBuilder.Append(str2);
-							}
+							if (s_ProjectPath != null && str2.StartsWith(s_ProjectPath, StringComparison.OrdinalIgnoreCase))
+								str2 = str2.Substring(s_ProjectPath.Length);
+							stringBuilder.Append(str2.Replace('\\', '/'));
 							stringBuilder.Append(":");
 							stringBuilder.Append(frame.GetFileLineNumber().ToString());
 							stringBuilder.Append(")");
@@ -96,6 +95,15 @@ namespace WhiteSparrow.Shared.Logging
 			}
 
 			return stringBuilder.ToString().Trim('\n', '\r');
+		}
+
+		private static bool IsHidden(Type declaringType, System.Reflection.MethodBase method)
+		{
+			var ns = declaringType.Namespace;
+			if (ns != null && (ns == k_HiddenNamespace || ns.StartsWith(k_HiddenNamespace + ".", StringComparison.Ordinal)))
+				return true;
+
+			return method.IsDefined(typeof(HideInCallstackAttribute), false);
 		}
 	}
 }

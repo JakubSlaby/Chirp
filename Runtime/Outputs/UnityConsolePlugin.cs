@@ -9,19 +9,34 @@ namespace WhiteSparrow.Shared.Logging.Outputs
 {
     public class UnityConsolePlugin : AbstractChirpOutput, IChirpInput, ILogHandler
     {
-        private ILogHandler m_DefaultUnityLogHandler;
+        private static readonly LogType[] s_AllLogTypes = (LogType[])Enum.GetValues(typeof(LogType));
+
+        private static ILogHandler m_DefaultUnityLogHandler;
+        
+        
         private IChirpReceiver m_Receiver;
         private ChirpLogger m_Channel;
-        
+        private StackTraceLogType[] m_PreviousStackTraceLogTypes;
+
         public UnityConsolePlugin()
         {
-            m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
+            if(m_DefaultUnityLogHandler == null)
+                m_DefaultUnityLogHandler = Debug.unityLogger.logHandler;
         }
-        
+
         void IChirpInput.InitializeInput(IChirpReceiver receiver)
         {
             m_Receiver = receiver;
             m_Channel = new ChirpLogger("Unity");
+
+            m_PreviousStackTraceLogTypes = new StackTraceLogType[s_AllLogTypes.Length];
+            for (int i = 0; i < s_AllLogTypes.Length; i++)
+            {
+                var logType = s_AllLogTypes[i];
+                m_PreviousStackTraceLogTypes[i] = Application.GetStackTraceLogType(logType);
+                Application.SetStackTraceLogType(logType, StackTraceLogType.None);
+            }
+
             Debug.unityLogger.logHandler = this;
         }
         
@@ -45,6 +60,13 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             if (Debug.unityLogger.logHandler == this)
                 Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
             m_DefaultUnityLogHandler = null;
+
+            if (m_PreviousStackTraceLogTypes != null)
+            {
+                for (int i = 0; i < s_AllLogTypes.Length; i++)
+                    Application.SetStackTraceLogType(s_AllLogTypes[i], m_PreviousStackTraceLogTypes[i]);
+                m_PreviousStackTraceLogTypes = null;
+            }
         }
 
         [ThreadStatic]
@@ -56,7 +78,7 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             else
                 s_HelperFormatBuilder.Clear();
 
-            if (logEvent.Source.UseChannel)
+            if (logEvent.Source is { UseChannel: true })
             {
                 s_HelperFormatBuilder.Append('[');
                 s_HelperFormatBuilder.AppendFormat("<color=#{0}>", logEvent.Source.ColorHtml);
@@ -74,6 +96,12 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             {
                 s_HelperFormatBuilder.Append(logEvent.Message);
             }
+            
+            if (!string.IsNullOrWhiteSpace(logEvent.StackTrace))
+            {
+                s_HelperFormatBuilder.AppendLine();
+                s_HelperFormatBuilder.Append(logEvent.StackTrace);
+            }
 
             return s_HelperFormatBuilder.ToString();
         }
@@ -85,9 +113,8 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             var log = ChirpLogUtil.ConstructLog(string.Format(format, args), context);
             log.Level = UnityLogUtil.FromUnityLogType(logType);
             log.Source = m_Channel;
+            log.StackTrace = LoggingStackTraceUtil.FormatUnityStackTrace(new System.Diagnostics.StackTrace(true));
             m_Receiver.Submit(log);
-            
-            
         }
 
         [HideInCallstack]
@@ -95,7 +122,7 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         {
             var log = ChirpLogUtil.ConstructLog(exception.Message, context);
             log.Source = m_Channel;
-            log.StackTrace = exception.StackTrace;
+            log.StackTrace = StackTraceUtility.ExtractStringFromException(exception);
             log.Level = LogLevel.Exception;
             m_Receiver.Submit(log);
         }

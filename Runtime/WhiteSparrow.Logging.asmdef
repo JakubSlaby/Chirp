@@ -2,7 +2,7 @@
     "name": "WhiteSparrow.Logging",
     "rootNamespace": "",
     "references": [
-        "ZString"
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
