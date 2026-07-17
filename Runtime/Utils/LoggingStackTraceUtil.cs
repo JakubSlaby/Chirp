@@ -2,12 +2,18 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace WhiteSparrow.Shared.Logging
 {
 	public static class LoggingStackTraceUtil
 	{
+		private const string k_HiddenNamespace = "WhiteSparrow.Shared.Logging";
+
+		private static readonly ProfilerMarker s_CaptureStackTraceMarker = new ProfilerMarker("LoggingStackTraceUtil.CaptureStackTrace");
+		private static readonly ProfilerMarker s_FormatUnityStackTraceMarker = new ProfilerMarker("LoggingStackTraceUtil.FormatUnityStackTrace");
+
 		[ThreadStatic]
 		private static StringBuilder s_StackTraceBuilderThreadStatic;
 
@@ -32,9 +38,25 @@ namespace WhiteSparrow.Shared.Logging
 				s_ProjectPath = s_ProjectPath.Substring(0, i);
 			s_ProjectPath = s_ProjectPath.Replace('/', Path.DirectorySeparatorChar);
 		}
+		
+		public static string ExtractStackTrace()
+		{
+			using var _ = s_CaptureStackTraceMarker.Auto();
+			var stackTrace = CaptureStackTrace();
+			return FormatUnityStackTrace(stackTrace);
+		}
+
+		[HideInCallstack]
+		public static StackTrace CaptureStackTrace()
+		{
+			using var _ = s_CaptureStackTraceMarker.Auto();
+			return new StackTrace(true);
+		}
 
 		public static string FormatUnityStackTrace(StackTrace stackTrace)
 		{
+			using var _ = s_FormatUnityStackTraceMarker.Auto();
+
 			var stringBuilder = s_StackTraceBuilder;
 			stringBuilder.Clear();
 			for (var index1 = 0; index1 < stackTrace.FrameCount; ++index1)
@@ -44,7 +66,7 @@ namespace WhiteSparrow.Shared.Logging
 				if (method != null)
 				{
 					var declaringType = method.DeclaringType;
-					if (declaringType != null)
+					if (declaringType != null && !IsHidden(declaringType, method))
 					{
 						var str1 = declaringType.Namespace;
 						if (!string.IsNullOrEmpty(str1))
@@ -79,12 +101,9 @@ namespace WhiteSparrow.Shared.Logging
 							(!(method.Name == "print") || !(declaringType.Name == "MonoBehaviour") || !(declaringType.Namespace == "UnityEngine")))
 						{
 							stringBuilder.Append(" (at ");
-							if (s_ProjectPath != null)
-							{
-								if (str2.StartsWith(s_ProjectPath))
-									str2 = str2.Substring(s_ProjectPath.Length);
-								stringBuilder.Append(str2);
-							}
+							if (s_ProjectPath != null && str2.StartsWith(s_ProjectPath, StringComparison.OrdinalIgnoreCase))
+								str2 = str2.Substring(s_ProjectPath.Length);
+							stringBuilder.Append(str2.Replace('\\', '/'));
 							stringBuilder.Append(":");
 							stringBuilder.Append(frame.GetFileLineNumber().ToString());
 							stringBuilder.Append(")");
@@ -96,6 +115,15 @@ namespace WhiteSparrow.Shared.Logging
 			}
 
 			return stringBuilder.ToString().Trim('\n', '\r');
+		}
+
+		private static bool IsHidden(Type declaringType, System.Reflection.MethodBase method)
+		{
+			var ns = declaringType.Namespace;
+			if (ns != null && (ns == k_HiddenNamespace || ns.StartsWith(k_HiddenNamespace + ".", StringComparison.Ordinal)))
+				return true;
+
+			return method.IsDefined(typeof(HideInCallstackAttribute), false);
 		}
 	}
 }

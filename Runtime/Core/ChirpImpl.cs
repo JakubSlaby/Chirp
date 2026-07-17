@@ -84,7 +84,7 @@ namespace WhiteSparrow.Shared.Logging.Core
         {
             log.TimeStamp = DateTime.UtcNow;
             
-            if(log.Options.AddStackTrace)
+            if(log.Options.AddStackTrace || log.Level >= LogLevel.Assert)
                 PopulateStackTrace(log);
 
             foreach (var output in m_Outputs)
@@ -95,28 +95,32 @@ namespace WhiteSparrow.Shared.Logging.Core
             log.Dispose();
         }
 
+        [HideInCallstack]
         public void PopulateStackTrace(ChirpLog log)
         {
-            StackTrace st = new StackTrace(2, true);
-            if(st.FrameCount == 0)
+            if (log.StackTrace != null)
                 return;
-            
-            
+
+            log.StackTrace = LoggingStackTraceUtil.ExtractStackTrace();
         }
 
         public void Dispose()
         {
-            var inputs = m_Inputs.ToArray();
-                m_Inputs.Clear();
+            var plugins = m_Plugins.ToArray();
+            m_Plugins.Clear();
+            m_Inputs.Clear();
+            m_Outputs.Clear();
 
-
+            foreach (var plugin in plugins)
+            {
+                plugin.Dispose();
+            }
         }
 
         #endregion
 
         #region Channels
 
-        private static int s_LoggerId = 1;
         private ChirpLogger m_DefaultChannel;
         ChirpLogger IChirpChannels.Default => m_DefaultChannel;
 
