@@ -49,7 +49,7 @@ namespace WhiteSparrow.Shared.LogTesting
 			LogLevel[] enumValues = Enum.GetValues(typeof(LogLevel)) as LogLevel[];
 			
 			Chirp.Logger.Log("Test Log");
-			Chirp.Logger.Warning("Test Warning");
+			Chirp.Logger.Warning("Test Warning"); 
 			Chirp.Logger.Error("Test Error");
 		}
 	}

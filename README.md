@@ -134,8 +134,14 @@ Two things follow from the pooling:
 - A `ChirpLog` is only valid until `Submit` returns. Custom `IChirpOutput` implementations must not retain the instance beyond `Ingest()` — call `log.Copy()` to keep a caller-owned snapshot (e.g. for file or network outputs that batch). In the editor, accessing a released log raises an error pointing this out.
 - Manually constructed logs that are never submitted are simply collected by the GC — nothing breaks, the pool just loses a reuse.
 
-### Optional: skip Unity's internal message copy
-Unity's public `ILogHandler.LogFormat` API runs `string.Format` internally, copying every message a second time. Adding the `CHIRP_UNITY_INTERNAL_LOG` scripting define makes the console output call Unity's internal `DebugLogHandler.Internal_Log` directly through a cached delegate, skipping that copy. If the internal method is missing or its signature changes in a future Unity version, Chirp falls back to the public API silently.
+### Stack traces and Unity's internal log handler
+Chirp formats its own stack traces — filtered by `[HideInCallstack]`, with Chirp's own frames removed, and resolved correctly across `async`/UniTask continuations, where Unity's native capture tends to point at the continuation rather than the call site. They are appended to the message in Unity's own `Type:Method () (at path/File.cs:12)` format, so double-click-to-source in the Console still works.
+
+For that to be the only trace shown, Unity's native one has to be suppressed. Chirp does this **per log call**, by routing console output through Unity's internal `DebugLogHandler.Internal_Log` (via a cached reflection delegate) and passing `LogOption.NoStacktrace`. Chirp does **not** call `Application.SetStackTraceLogType` — your project's Stack Trace Logging settings are left exactly as you configured them.
+
+This also skips the `string.Format` full-message copy that Unity's public `ILogHandler.LogFormat` API performs on every log.
+
+If the internal method is missing or its signature changes in a future Unity version, Chirp falls back to the public API silently. That API has no per-call option, so on the fallback path Unity supplies the stack trace according to your project settings and Chirp omits its own rather than printing two.
 
 On IL2CPP with high stripping levels, keep the internal handler with a `link.xml` entry:
 ```xml

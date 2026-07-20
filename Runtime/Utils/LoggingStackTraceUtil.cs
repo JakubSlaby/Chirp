@@ -16,6 +16,12 @@ namespace WhiteSparrow.Shared.Logging
 		private static readonly ProfilerMarker s_CaptureStackTraceMarker = new ProfilerMarker("LoggingStackTraceUtil.CaptureStackTrace");
 		private static readonly ProfilerMarker s_FormatUnityStackTraceMarker = new ProfilerMarker("LoggingStackTraceUtil.FormatUnityStackTrace");
 
+		// Sized to hold a typical formatted trace in a single chunk. StringBuilder.Clear() only
+		// takes its allocation-free fast path while the builder is still one chunk — once it has
+		// spilled, every Clear() allocates a fresh array to collapse the chain back down, on
+		// every call. One 4 KB array per thread up front buys that away for good.
+		private const int k_StackTraceBuilderCapacity = 2048;
+
 		[ThreadStatic]
 		private static StringBuilder s_StackTraceBuilderThreadStatic;
 
@@ -26,7 +32,7 @@ namespace WhiteSparrow.Shared.Logging
 			get
 			{
 				if (s_StackTraceBuilderThreadStatic == null)
-					s_StackTraceBuilderThreadStatic = new StringBuilder();
+					s_StackTraceBuilderThreadStatic = new StringBuilder(k_StackTraceBuilderCapacity);
 				return s_StackTraceBuilderThreadStatic;
 			}
 		}
@@ -55,11 +61,31 @@ namespace WhiteSparrow.Shared.Logging
 			return new StackTrace(true);
 		}
 
-		// Method → "Namespace.Type:Method(ParamTypes)" fragment. The signature part of a frame
-		// never changes, so it is formatted once per distinct method instead of per log call;
-		// this also avoids the ParameterInfo[] allocation GetParameters() makes on every call.
-		private static readonly ConcurrentDictionary<MethodBase, string> s_MethodSignatureCache = new ConcurrentDictionary<MethodBase, string>();
-		private static readonly Func<MethodBase, string> s_BuildMethodSignature = BuildMethodSignature;
+		/// <summary>
+		/// Everything about a frame that depends only on its method, and therefore never changes
+		/// between log calls: the rendered signature, whether the frame is hidden, and whether it
+		/// is one of the Unity entry points that should print without a file/line suffix.
+		/// </summary>
+		private sealed class FrameFormat
+		{
+			public readonly string Signature;
+			public readonly bool Hidden;
+			public readonly bool AllowFileInfo;
+
+			public FrameFormat(string signature, bool hidden, bool allowFileInfo)
+			{
+				Signature = signature;
+				Hidden = hidden;
+				AllowFileInfo = allowFileInfo;
+			}
+		}
+
+		// Method → formatting decisions, resolved once per distinct method rather than per log
+		// call. This keeps three things off the hot path: the ParameterInfo[] that GetParameters()
+		// allocates, the custom-attribute walk behind IsDefined(HideInCallstack), and the chain of
+		// namespace/type-name string comparisons used to spot Unity's own logging entry points.
+		private static readonly ConcurrentDictionary<MethodBase, FrameFormat> s_FrameFormatCache = new ConcurrentDictionary<MethodBase, FrameFormat>();
+		private static readonly Func<MethodBase, FrameFormat> s_BuildFrameFormat = BuildFrameFormat;
 
 		public static string FormatUnityStackTrace(StackTrace stackTrace)
 		{
@@ -74,27 +100,22 @@ namespace WhiteSparrow.Shared.Logging
 				if (method == null)
 					continue;
 
-				var declaringType = method.DeclaringType;
-				if (declaringType == null || IsHidden(declaringType, method))
+				var format = s_FrameFormatCache.GetOrAdd(method, s_BuildFrameFormat);
+				if (format.Hidden)
 					continue;
 
-				stringBuilder.Append(s_MethodSignatureCache.GetOrAdd(method, s_BuildMethodSignature));
+				stringBuilder.Append(format.Signature);
 
-				var str2 = frame.GetFileName();
-				if (str2 != null &&
-					(!(declaringType.Name == "Debug") || !(declaringType.Namespace == "UnityEngine")) &&
-					(!(declaringType.Name == "Logger") || !(declaringType.Namespace == "UnityEngine")) &&
-					(!(declaringType.Name == "DebugLogHandler") || !(declaringType.Namespace == "UnityEngine")) &&
-					(!(declaringType.Name == "Assert") || !(declaringType.Namespace == "UnityEngine.Assertions")) &&
-					(!(method.Name == "print") || !(declaringType.Name == "MonoBehaviour") || !(declaringType.Namespace == "UnityEngine")))
+				var fileName = frame.GetFileName();
+				if (fileName != null && format.AllowFileInfo)
 				{
 					stringBuilder.Append(" (at ");
-					int start = s_ProjectPath != null && str2.StartsWith(s_ProjectPath, StringComparison.OrdinalIgnoreCase)
+					int start = s_ProjectPath != null && fileName.StartsWith(s_ProjectPath, StringComparison.OrdinalIgnoreCase)
 						? s_ProjectPath.Length
 						: 0;
-					for (int c = start; c < str2.Length; c++)
+					for (int c = start; c < fileName.Length; c++)
 					{
-						char ch = str2[c];
+						char ch = fileName[c];
 						stringBuilder.Append(ch == '\\' ? '/' : ch);
 					}
 
@@ -108,6 +129,36 @@ namespace WhiteSparrow.Shared.Logging
 
 			StringBuilderUtil.TrimEndLineBreaks(stringBuilder);
 			return stringBuilder.ToString();
+		}
+
+		private static readonly FrameFormat s_HiddenFrame = new FrameFormat(null, true, false);
+
+		private static FrameFormat BuildFrameFormat(MethodBase method)
+		{
+			var declaringType = method.DeclaringType;
+			if (declaringType == null || IsHidden(declaringType, method))
+				return s_HiddenFrame;
+
+			return new FrameFormat(BuildMethodSignature(method), false, AllowsFileInfo(declaringType, method));
+		}
+
+		// Mirrors Unity's own StackTraceUtility: its logging entry points are named in the trace
+		// but never given a file/line suffix, so a double-click lands on the caller instead.
+		private static bool AllowsFileInfo(Type declaringType, MethodBase method)
+		{
+			var ns = declaringType.Namespace;
+			var name = declaringType.Name;
+
+			if (ns == "UnityEngine")
+				return name != "Debug"
+					&& name != "Logger"
+					&& name != "DebugLogHandler"
+					&& !(name == "MonoBehaviour" && method.Name == "print");
+
+			if (ns == "UnityEngine.Assertions")
+				return name != "Assert";
+
+			return true;
 		}
 
 		private static string BuildMethodSignature(MethodBase method)

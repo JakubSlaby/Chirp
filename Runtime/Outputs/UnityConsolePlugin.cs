@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Text;
-#if CHIRP_UNITY_INTERNAL_LOG
 using System.Reflection;
-#endif
 using Unity.Profiling;
 using UnityEngine;
 using WhiteSparrow.Shared.Logging.Core;
@@ -13,14 +11,11 @@ namespace WhiteSparrow.Shared.Logging.Outputs
 {
     public class UnityConsolePlugin : AbstractChirpOutput, IChirpInput, ILogHandler
     {
-        private static readonly LogType[] s_AllLogTypes = (LogType[])Enum.GetValues(typeof(LogType));
-
         private static ILogHandler m_DefaultUnityLogHandler;
-        
-        
+
+
         private IChirpReceiver m_Receiver;
         private ChirpLogger m_Channel;
-        private StackTraceLogType[] m_PreviousStackTraceLogTypes;
 
         public UnityConsolePlugin()
         {
@@ -33,17 +28,10 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             m_Receiver = receiver;
             m_Channel = new ChirpLogger("Unity");
 
-#if CHIRP_UNITY_INTERNAL_LOG
+            // Suppression of Unity's own stack trace is per-call (LogOption.NoStacktrace) rather
+            // than global — Chirp deliberately leaves Application.SetStackTraceLogType alone so a
+            // project's Stack Trace Logging settings survive Chirp being installed.
             ProbeInternalLog();
-#endif
-
-            m_PreviousStackTraceLogTypes = new StackTraceLogType[s_AllLogTypes.Length];
-            for (int i = 0; i < s_AllLogTypes.Length; i++)
-            {
-                var logType = s_AllLogTypes[i];
-                m_PreviousStackTraceLogTypes[i] = Application.GetStackTraceLogType(logType);
-                Application.SetStackTraceLogType(logType, StackTraceLogType.None);
-            }
 
             Debug.unityLogger.logHandler = this;
         }
@@ -72,26 +60,34 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         {
             using var _ = s_ProcessMarker.Auto();
 
-#if CHIRP_UNITY_INTERNAL_LOG
             if (s_InternalLog != null)
             {
-                s_InternalLog(UnityLogUtil.ToUnityLogType(logEvent.Level), LogOption.NoStacktrace, FormatConsoleLog(logEvent), logEvent.Context);
+                // NoStacktrace on every log: Unity contributes no trace of its own, so what the
+                // Console shows is exactly Chirp's — filtered by [HideInCallstack] and resolved
+                // correctly across async/UniTask frames, which Unity's native capture is not.
+                s_InternalLog(UnityLogUtil.ToUnityLogType(logEvent.Level), LogOption.NoStacktrace, FormatConsoleLog(logEvent, true), logEvent.Context);
                 return;
             }
-#endif
+
+            // Fallback: the public API has no per-call LogOption, so Unity appends its own trace
+            // according to the project's settings. Appending Chirp's as well would double it, so
+            // Unity's is left to stand alone.
             var args = s_LogFormatArgs ??= new object[1];
-            args[0] = FormatConsoleLog(logEvent);
+            args[0] = FormatConsoleLog(logEvent, false);
             m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.Level), logEvent.Context, "{0}", args);
             args[0] = null;
         }
 
-#if CHIRP_UNITY_INTERNAL_LOG
-        // Opt-in fast path (scripting define CHIRP_UNITY_INTERNAL_LOG): binds Unity's internal
-        // DebugLogHandler.Internal_Log to skip the string.Format("{0}", ...) full-message copy
-        // the public ILogHandler API performs on every log. Falls back to LogFormat silently
-        // whenever the internal method is missing or its signature changed.
+        // Binds Unity's internal DebugLogHandler.Internal_Log. Two reasons: it takes a per-call
+        // LogOption, which is what lets Chirp suppress Unity's stack trace without touching the
+        // project-wide Application.SetStackTraceLogType settings; and it skips the
+        // string.Format("{0}", ...) full-message copy the public ILogHandler API performs on
+        // every log. Falls back to LogFormat whenever the internal method is missing or its
+        // signature changed — see Process for what that costs.
+        // Only the LogOption-carrying overload is bound. The pre-2017 three-argument Internal_Log
+        // cannot express NoStacktrace, so binding it would silently print both Unity's trace and
+        // Chirp's; that case is left to the fallback path instead.
         private delegate void InternalLogDelegate(LogType level, LogOption options, string msg, Object obj);
-        private delegate void InternalLogLegacyDelegate(LogType level, string msg, Object obj);
 
         private static InternalLogDelegate s_InternalLog;
         private static bool s_InternalLogProbed;
@@ -112,46 +108,27 @@ namespace WhiteSparrow.Shared.Logging.Outputs
 
                 var method = handlerType.GetMethod("Internal_Log", flags, null,
                     new[] { typeof(LogType), typeof(LogOption), typeof(string), typeof(Object) }, null);
-                if (method != null)
-                {
-                    s_InternalLog = (InternalLogDelegate)Delegate.CreateDelegate(typeof(InternalLogDelegate), method, false);
-                    if (s_InternalLog != null)
-                        return;
-                }
+                if (method == null)
+                    return;
 
-                var legacyMethod = handlerType.GetMethod("Internal_Log", flags, null,
-                    new[] { typeof(LogType), typeof(string), typeof(Object) }, null);
-                if (legacyMethod != null)
-                {
-                    var legacy = (InternalLogLegacyDelegate)Delegate.CreateDelegate(typeof(InternalLogLegacyDelegate), legacyMethod, false);
-                    if (legacy != null)
-                        s_InternalLog = (level, options, msg, obj) => legacy(level, msg, obj);
-                }
+                s_InternalLog = (InternalLogDelegate)Delegate.CreateDelegate(typeof(InternalLogDelegate), method, false);
             }
             catch (Exception)
             {
                 s_InternalLog = null;
             }
         }
-#endif
 
         protected override void OnDispose()
         {
             if (Debug.unityLogger.logHandler == this)
                 Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
             m_DefaultUnityLogHandler = null;
-
-            if (m_PreviousStackTraceLogTypes != null)
-            {
-                for (int i = 0; i < s_AllLogTypes.Length; i++)
-                    Application.SetStackTraceLogType(s_AllLogTypes[i], m_PreviousStackTraceLogTypes[i]);
-                m_PreviousStackTraceLogTypes = null;
-            }
         }
 
         [ThreadStatic]
         private static StringBuilder s_HelperFormatBuilder;
-        private string FormatConsoleLog(ChirpLog logEvent)
+        private string FormatConsoleLog(ChirpLog logEvent, bool appendStackTrace)
         {
             using var _ = s_FormatConsoleLogMarker.Auto();
 
@@ -174,7 +151,7 @@ namespace WhiteSparrow.Shared.Logging.Outputs
                 s_HelperFormatBuilder.Append(logEvent.Message);
             }
             
-            if (!string.IsNullOrWhiteSpace(logEvent.StackTrace))
+            if (appendStackTrace && !string.IsNullOrWhiteSpace(logEvent.StackTrace))
             {
                 s_HelperFormatBuilder.AppendLine();
                 s_HelperFormatBuilder.Append(logEvent.StackTrace);

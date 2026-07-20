@@ -88,8 +88,10 @@ namespace WhiteSparrow.Shared.Logging.Core
             using var _ = s_SubmitMarker.Auto();
 
             log.TimeStamp = DateTime.UtcNow;
-            
-            if(log.Options.AddStackTrace || log.Level >= LogLevel.Assert)
+
+            if (log.Level >= LogLevel.Assert)
+                log.m_AddStackTrace = true; 
+            if(log.Options.AddStackTrace)
                 PopulateStackTrace(log);
 
             foreach (var output in m_Outputs)

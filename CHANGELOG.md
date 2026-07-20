@@ -12,7 +12,7 @@ Allocation and string optimisation pass across the logging hot path. A plain `Ch
 - `ChirpLog.Copy()` — creates a non-pooled, caller-owned snapshot for outputs that need to retain log data beyond `Ingest()` (file writers, network batches).
 - Editor-only diagnostics: accessing a `ChirpLog` after it was released back to the pool logs an error pointing at `Copy()`. Zero cost in players.
 - `Tests/` assembly with per-shape allocation budget tests and markdown golden tests that pin parser output byte-for-byte against the previous implementation.
-- Optional `CHIRP_UNITY_INTERNAL_LOG` scripting define: routes console output through Unity's internal `DebugLogHandler.Internal_Log` via a cached reflection delegate, skipping the full-message `string.Format` copy Unity's public `ILogHandler` API performs on every log. Falls back to the public API silently if the internal method is missing (see README for IL2CPP `link.xml` note).
+- Console output routes through Unity's internal `DebugLogHandler.Internal_Log` via a cached reflection delegate. This gives a per-call `LogOption` (see Changed, below) and skips the full-message `string.Format` copy Unity's public `ILogHandler` API performs on every log. Falls back to the public API silently if the internal method is missing (see README for IL2CPP `link.xml` note).
 
 ### Changed
 - **Lifetime contract**: a `ChirpLog` is valid only until `Submit` returns. `IChirpOutput` implementations must not retain instances beyond `Ingest()` — use `ChirpLog.Copy()`. (Retaining was never supported: previously `Submit` disposed and nulled the log immediately after dispatch.)
