@@ -127,6 +127,25 @@ If Chirp is disabled for given platform any calls to the API will be automatical
 You can easily adjust the settings through the Chirp Logging Framework Project settings (`Tools/White Sparrow/Chirp Logger/Chirp Settings`).
 ![Log Level Configuration](Images/package-settings.jpg)
 
+## Performance
+Since 0.13.0 the logging hot path is allocation-free on the library side: `ChirpLog` instances are pooled (safe to log from any thread), channel prefixes are cached per logger, and the markdown/stack-trace formatters reuse thread-local builders.
+
+Two things follow from the pooling:
+- A `ChirpLog` is only valid until `Submit` returns. Custom `IChirpOutput` implementations must not retain the instance beyond `Ingest()` — call `log.Copy()` to keep a caller-owned snapshot (e.g. for file or network outputs that batch). In the editor, accessing a released log raises an error pointing this out.
+- Manually constructed logs that are never submitted are simply collected by the GC — nothing breaks, the pool just loses a reuse.
+
+### Optional: skip Unity's internal message copy
+Unity's public `ILogHandler.LogFormat` API runs `string.Format` internally, copying every message a second time. Adding the `CHIRP_UNITY_INTERNAL_LOG` scripting define makes the console output call Unity's internal `DebugLogHandler.Internal_Log` directly through a cached delegate, skipping that copy. If the internal method is missing or its signature changes in a future Unity version, Chirp falls back to the public API silently.
+
+On IL2CPP with high stripping levels, keep the internal handler with a `link.xml` entry:
+```xml
+<linker>
+  <assembly fullname="UnityEngine.CoreModule">
+    <type fullname="UnityEngine.DebugLogHandler" preserve="all"/>
+  </assembly>
+</linker>
+```
+
 ## Contributing
 If you find any issues or think there are missing features that could benefit the package please use [GitHub Issues](/issues) to report any bugs or ideas.
 

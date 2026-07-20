@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Profiling;
 using UnityEngine;
 using WhiteSparrow.Shared.Logging.Inputs;
 using WhiteSparrow.Shared.Logging.Outputs;
@@ -79,9 +80,13 @@ namespace WhiteSparrow.Shared.Logging.Core
                 m_Outputs.Remove(output);
         }
 
+        private static readonly ProfilerMarker s_SubmitMarker = new ProfilerMarker("ChirpImpl.Submit");
+
         [HideInCallstack]
         public void Submit(ChirpLog log)
         {
+            using var _ = s_SubmitMarker.Auto();
+
             log.TimeStamp = DateTime.UtcNow;
             
             if(log.Options.AddStackTrace || log.Level >= LogLevel.Assert)

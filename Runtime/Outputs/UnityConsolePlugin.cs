@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Text;
+#if CHIRP_UNITY_INTERNAL_LOG
+using System.Reflection;
+#endif
+using Unity.Profiling;
 using UnityEngine;
 using WhiteSparrow.Shared.Logging.Core;
 using WhiteSparrow.Shared.Logging.Inputs;
@@ -29,6 +33,10 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             m_Receiver = receiver;
             m_Channel = new ChirpLogger("Unity");
 
+#if CHIRP_UNITY_INTERNAL_LOG
+            ProbeInternalLog();
+#endif
+
             m_PreviousStackTraceLogTypes = new StackTraceLogType[s_AllLogTypes.Length];
             for (int i = 0; i < s_AllLogTypes.Length; i++)
             {
@@ -49,11 +57,83 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             return true;
         }
 
+        // Reused single-element args buffer for the "{0}" LogFormat call below. Unity's handler
+        // consumes it synchronously; ThreadStatic because logs can be submitted from any thread.
+        [ThreadStatic]
+        private static object[] s_LogFormatArgs;
+
+        // The Process marker also covers the hand-off into Unity's log handler, so the
+        // difference between it and FormatConsoleLog is Unity's own per-log cost.
+        private static readonly ProfilerMarker s_ProcessMarker = new ProfilerMarker("UnityConsolePlugin.Process");
+        private static readonly ProfilerMarker s_FormatConsoleLogMarker = new ProfilerMarker("UnityConsolePlugin.FormatConsoleLog");
+
         [HideInCallstack]
         protected override void Process(ChirpLog logEvent)
         {
-            m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.Level), logEvent.Context, "{0}", FormatConsoleLog(logEvent));
+            using var _ = s_ProcessMarker.Auto();
+
+#if CHIRP_UNITY_INTERNAL_LOG
+            if (s_InternalLog != null)
+            {
+                s_InternalLog(UnityLogUtil.ToUnityLogType(logEvent.Level), LogOption.NoStacktrace, FormatConsoleLog(logEvent), logEvent.Context);
+                return;
+            }
+#endif
+            var args = s_LogFormatArgs ??= new object[1];
+            args[0] = FormatConsoleLog(logEvent);
+            m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.Level), logEvent.Context, "{0}", args);
+            args[0] = null;
         }
+
+#if CHIRP_UNITY_INTERNAL_LOG
+        // Opt-in fast path (scripting define CHIRP_UNITY_INTERNAL_LOG): binds Unity's internal
+        // DebugLogHandler.Internal_Log to skip the string.Format("{0}", ...) full-message copy
+        // the public ILogHandler API performs on every log. Falls back to LogFormat silently
+        // whenever the internal method is missing or its signature changed.
+        private delegate void InternalLogDelegate(LogType level, LogOption options, string msg, Object obj);
+        private delegate void InternalLogLegacyDelegate(LogType level, string msg, Object obj);
+
+        private static InternalLogDelegate s_InternalLog;
+        private static bool s_InternalLogProbed;
+
+        private static void ProbeInternalLog()
+        {
+            if (s_InternalLogProbed)
+                return;
+            s_InternalLogProbed = true;
+
+            try
+            {
+                var handlerType = typeof(Debug).Assembly.GetType("UnityEngine.DebugLogHandler");
+                if (handlerType == null)
+                    return;
+
+                const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+
+                var method = handlerType.GetMethod("Internal_Log", flags, null,
+                    new[] { typeof(LogType), typeof(LogOption), typeof(string), typeof(Object) }, null);
+                if (method != null)
+                {
+                    s_InternalLog = (InternalLogDelegate)Delegate.CreateDelegate(typeof(InternalLogDelegate), method, false);
+                    if (s_InternalLog != null)
+                        return;
+                }
+
+                var legacyMethod = handlerType.GetMethod("Internal_Log", flags, null,
+                    new[] { typeof(LogType), typeof(string), typeof(Object) }, null);
+                if (legacyMethod != null)
+                {
+                    var legacy = (InternalLogLegacyDelegate)Delegate.CreateDelegate(typeof(InternalLogLegacyDelegate), legacyMethod, false);
+                    if (legacy != null)
+                        s_InternalLog = (level, options, msg, obj) => legacy(level, msg, obj);
+                }
+            }
+            catch (Exception)
+            {
+                s_InternalLog = null;
+            }
+        }
+#endif
 
         protected override void OnDispose()
         {
@@ -73,19 +153,16 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         private static StringBuilder s_HelperFormatBuilder;
         private string FormatConsoleLog(ChirpLog logEvent)
         {
+            using var _ = s_FormatConsoleLogMarker.Auto();
+
             if (s_HelperFormatBuilder == null)
                 s_HelperFormatBuilder = new StringBuilder();
             else
                 s_HelperFormatBuilder.Clear();
 
-            if (logEvent.Source is { UseChannel: true })
+            if (logEvent.Source is { UseChannel: true } source)
             {
-                s_HelperFormatBuilder.Append('[');
-                s_HelperFormatBuilder.AppendFormat("<color=#{0}>", logEvent.Source.ColorHtml);
-                s_HelperFormatBuilder.Append(logEvent.Source.Name);
-                s_HelperFormatBuilder.Append("</color>");
-                s_HelperFormatBuilder.Append(']');
-                s_HelperFormatBuilder.Append(' ');
+                s_HelperFormatBuilder.Append(source.ChannelPrefix);
             }
 
             if (logEvent.Options.HasMarkdown)
@@ -110,7 +187,19 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         [HideInCallstack]
         void ILogHandler.LogFormat(LogType logType, Object context, string format, params object[] args)
         {
-            var log = ChirpLogUtil.ConstructLog(string.Format(format, args), context);
+            // Debug.Log(object) always arrives as ("{0}", message) — skip the string.Format copy.
+            string message;
+            if (args is { Length: 1 } && format == "{0}")
+            {
+                var arg = args[0];
+                message = arg as string ?? arg?.ToString() ?? string.Empty;
+            }
+            else
+            {
+                message = string.Format(format, args);
+            }
+
+            var log = ChirpLogUtil.ConstructLog(message, context);
             log.Level = UnityLogUtil.FromUnityLogType(logType);
             log.Source = m_Channel;
             if (log.Level >= LogLevel.Assert)
