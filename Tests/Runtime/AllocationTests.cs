@@ -63,10 +63,17 @@ namespace WhiteSparrow.Shared.Logging.Tests
 		private NoOpOutput m_Output;
 		private ChirpLogger m_Channel;
 		private ChirpTestContextObject m_Context;
+		private IChirpPlugin[] m_DetachedPlugins;
 
 		[SetUp]
 		public void SetUp()
 		{
+			// These tests run in PlayMode inside a host project, which may already have outputs
+			// registered (a ChirpInitialize with a UnityConsoleLogger, for instance). Those would
+			// format and print every submitted log, so the measurement would be of the host's
+			// console output rather than of the pipeline. Take the pipeline over for the test.
+			m_DetachedPlugins = Chirp.Impl.DetachAllPlugins();
+
 			m_Output = new NoOpOutput();
 			Chirp.AddPlugin(m_Output);
 			m_Channel = new ChirpLogger("AllocTest");
@@ -77,6 +84,9 @@ namespace WhiteSparrow.Shared.Logging.Tests
 		public void TearDown()
 		{
 			Chirp.RemovePlugin(m_Output);
+			Chirp.Impl.RestorePlugins(m_DetachedPlugins);
+			m_DetachedPlugins = null;
+
 			if (m_Context != null)
 				Object.DestroyImmediate(m_Context);
 		}
@@ -193,10 +203,14 @@ namespace WhiteSparrow.Shared.Logging.Tests
 		private const long k_ConsoleLogBudget = 8 * 1024;
 
 		private UnityConsolePlugin m_Console;
+		private IChirpPlugin[] m_DetachedPlugins;
 
 		[SetUp]
 		public void SetUp()
 		{
+			// As in AllocationTests: measure exactly one console plugin, not this one plus
+			// whatever the host project already had registered.
+			m_DetachedPlugins = Chirp.Impl.DetachAllPlugins();
 			m_Console = Chirp.AddPlugin<UnityConsolePlugin>();
 		}
 
@@ -204,6 +218,8 @@ namespace WhiteSparrow.Shared.Logging.Tests
 		public void TearDown()
 		{
 			m_Console.Dispose();
+			Chirp.Impl.RestorePlugins(m_DetachedPlugins);
+			m_DetachedPlugins = null;
 		}
 
 		[Test]

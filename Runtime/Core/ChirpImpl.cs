@@ -80,6 +80,44 @@ namespace WhiteSparrow.Shared.Logging.Core
                 m_Outputs.Remove(output);
         }
 
+        /// <summary>
+        /// Detaches every registered plugin without disposing it and returns them, so a caller
+        /// can put the pipeline back afterwards. Exists for the allocation tests: they measure
+        /// the cost of the pipeline itself, which is only meaningful when the outputs are the
+        /// ones the test registered rather than whatever the host project installed at startup.
+        /// </summary>
+        internal IChirpPlugin[] DetachAllPlugins()
+        {
+            var detached = m_Plugins.ToArray();
+            foreach (var plugin in detached)
+                plugin.OnDisposed -= OnPluginDisposed;
+
+            m_Plugins.Clear();
+            m_Inputs.Clear();
+            m_Outputs.Clear();
+            return detached;
+        }
+
+        /// <summary>
+        /// Re-registers plugins taken out by <see cref="DetachAllPlugins"/>. Inputs are not
+        /// re-initialized — they were never torn down, so they are still bound to their source.
+        /// </summary>
+        internal void RestorePlugins(IChirpPlugin[] plugins)
+        {
+            if (plugins == null)
+                return;
+
+            foreach (var plugin in plugins)
+            {
+                if (plugin is IChirpInput input)
+                    m_Inputs.Add(input);
+                if (plugin is IChirpOutput output)
+                    m_Outputs.Add(output);
+
+                RegisterPlugin(plugin);
+            }
+        }
+
         private static readonly ProfilerMarker s_SubmitMarker = new ProfilerMarker("ChirpImpl.Submit");
 
         [HideInCallstack]
