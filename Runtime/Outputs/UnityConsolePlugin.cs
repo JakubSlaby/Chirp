@@ -11,6 +11,26 @@ namespace WhiteSparrow.Shared.Logging.Outputs
 {
     public class UnityConsolePlugin : AbstractChirpOutput, IChirpInput, ILogHandler
     {
+        /// <summary>
+        /// When true, this output defers per-log stack traces to Unity's native capture instead of
+        /// printing Chirp's reconstructed trace: a normal log that asked for a trace is emitted with
+        /// <see cref="LogOption.None"/> so Unity captures it — the pipeline's [HideInCallstack]
+        /// frames resolve that back to the real call site — and an exception is handed to Unity's
+        /// exception logger. When false, Unity is told to add nothing (<see cref="LogOption.NoStacktrace"/>)
+        /// and Chirp's own filtered, async-resolved trace is appended as text instead.
+        ///
+        /// Defaults to true in the editor and false in player builds. Native capture gives correct
+        /// file/line and IDE double-click in the editor, but is unreliable across async/UniTask
+        /// frames — which is why builds keep Chirp's reconstructed trace. Flip this to false in the
+        /// editor to preview the build's behaviour.
+        /// </summary>
+        public static bool EditorStackTraces =
+#if UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
+
         private static ILogHandler m_DefaultUnityLogHandler;
 
 
@@ -60,18 +80,55 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         {
             using var _ = s_ProcessMarker.Auto();
 
+#if UNITY_EDITOR
+            // Editor + EditorStackTraces: render the exception through Unity's own logger so the
+            // Console links it to the throw site, triggers error-pause, and so on. Prefer the
+            // per-call internal method; fall back to the default handler's public LogException when
+            // it is the only one available. When Internal_Log bound but Internal_LogException did
+            // not, drop through to the text path below, which still carries the exception's trace.
+            var exception = logEvent.Exception;
+            if (EditorStackTraces && exception != null)
+            {
+                if (s_InternalLogException != null)
+                {
+                    s_InternalLogException(exception, logEvent.Context);
+                    return;
+                }
+                if (s_InternalLog == null)
+                {
+                    m_DefaultUnityLogHandler.LogException(exception, logEvent.Context);
+                    return;
+                }
+            }
+#endif
+
             if (s_InternalLog != null)
             {
-                // NoStacktrace on every log: Unity contributes no trace of its own, so what the
-                // Console shows is exactly Chirp's — filtered by [HideInCallstack] and resolved
-                // correctly across async/UniTask frames, which Unity's native capture is not.
-                s_InternalLog(UnityLogUtil.ToUnityLogType(logEvent.Level), LogOption.NoStacktrace, FormatConsoleLog(logEvent, true), logEvent.Context);
+                // Default (builds, or EditorStackTraces off): Unity adds no trace of its own, and
+                // Chirp's reconstructed trace — filtered by [HideInCallstack], resolved across
+                // async/UniTask frames — is appended as text.
+                LogOption logOption = LogOption.NoStacktrace;
+                bool appendChirpStackTrace = true;
+
+                // Editor: for ordinary logs, hand the trace off to Unity's native capture. With a
+                // trace requested that is LogOption.None (the pipeline's [HideInCallstack] frames
+                // land it on the real call site); without one it stays suppressed. Chirp's own
+                // trace is not appended. Exceptions are excluded — they were handled natively above
+                // when possible, and otherwise want their throw-site trace, which the text path
+                // below preserves.
+                if (EditorStackTraces && logEvent.Level != LogLevel.Exception)
+                {
+                    logOption = logEvent.Options.AddStackTrace ? LogOption.None : LogOption.NoStacktrace;
+                    appendChirpStackTrace = false;
+                }
+
+                s_InternalLog(UnityLogUtil.ToUnityLogType(logEvent.Level), logOption, FormatConsoleLog(logEvent, appendChirpStackTrace), logEvent.Context);
                 return;
             }
 
-            // Fallback: the public API has no per-call LogOption, so Unity appends its own trace
-            // according to the project's settings. Appending Chirp's as well would double it, so
-            // Unity's is left to stand alone.
+            // Fallback: the public LogFormat has no per-call LogOption, so Unity appends its own
+            // trace according to the project's settings. Appending Chirp's as well would double it,
+            // so Unity's is left to stand alone.
             var args = s_LogFormatArgs ??= new object[1];
             args[0] = FormatConsoleLog(logEvent, false);
             m_DefaultUnityLogHandler.LogFormat(UnityLogUtil.ToUnityLogType(logEvent.Level), logEvent.Context, "{0}", args);
@@ -88,8 +145,17 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         // cannot express NoStacktrace, so binding it would silently print both Unity's trace and
         // Chirp's; that case is left to the fallback path instead.
         private delegate void InternalLogDelegate(LogType level, LogOption options, string msg, Object obj);
-
         private static InternalLogDelegate s_InternalLog;
+
+#if UNITY_EDITOR
+        // Unity's native exception logger, editor-only (see EditorStackTraces). Takes only the
+        // exception and the context object — it derives the trace from the exception itself, so
+        // there is no message or trace parameter to pass. Bound alongside Internal_Log; when it is
+        // missing, exceptions degrade to the formatted-text path, which still carries the trace.
+        private delegate void InternalLogExceptionDelegate(Exception exception, Object obj);
+        private static InternalLogExceptionDelegate s_InternalLogException;
+#endif
+
         private static bool s_InternalLogProbed;
 
         private static void ProbeInternalLog()
@@ -112,10 +178,22 @@ namespace WhiteSparrow.Shared.Logging.Outputs
                     return;
 
                 s_InternalLog = (InternalLogDelegate)Delegate.CreateDelegate(typeof(InternalLogDelegate), method, false);
+
+#if UNITY_EDITOR
+                // Optional, editor-only: exceptions still work without it (formatted-text path),
+                // so a bind failure here is not fatal to the fast path.
+                var exceptionMethod = handlerType.GetMethod("Internal_LogException", flags, null,
+                    new[] { typeof(Exception), typeof(Object) }, null);
+                if (exceptionMethod != null)
+                    s_InternalLogException = (InternalLogExceptionDelegate)Delegate.CreateDelegate(typeof(InternalLogExceptionDelegate), exceptionMethod, false);
+#endif
             }
             catch (Exception)
             {
                 s_InternalLog = null;
+#if UNITY_EDITOR
+                s_InternalLogException = null;
+#endif
             }
         }
 
@@ -202,6 +280,11 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         {
             var log = ChirpLogUtil.ConstructLog(exception.Message, context);
             log.Source = m_Channel;
+#if UNITY_EDITOR
+            // Editor-only: lets the console render the exception natively. StackTrace below is
+            // always populated so text outputs (and player builds) still carry the trace.
+            log.Exception = exception;
+#endif
             log.StackTrace = StackTraceUtility.ExtractStringFromException(exception);
             log.Level = LogLevel.Exception;
             m_Receiver.Submit(log);

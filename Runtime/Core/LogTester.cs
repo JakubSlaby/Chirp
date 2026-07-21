@@ -37,10 +37,15 @@ namespace WhiteSparrow.Shared.LogTesting
 			{
 				await UniTask.WaitForSeconds(1);
 
-				var log = "LogTester".AsChirpLog();
-				log.Level = enumValues[UnityEngine.Random.Range(0, enumValues.Length)];
-				log.Context = this;
-				Chirp.Impl.Submit(log);
+				try
+				{
+					throw new Exception("Test Exception");
+
+				}
+				catch (Exception E)
+				{
+					Chirp.Logger.Exception(E);
+				}
 			}
 		}
 
