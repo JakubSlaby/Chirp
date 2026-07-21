@@ -124,6 +124,13 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             if (Debug.unityLogger.logHandler == this)
                 Debug.unityLogger.logHandler = m_DefaultUnityLogHandler;
             m_DefaultUnityLogHandler = null;
+
+            if (m_PreviousStackTraceLogTypes != null)
+            {
+                for (int i = 0; i < s_AllLogTypes.Length; i++)
+                    Application.SetStackTraceLogType(s_AllLogTypes[i], m_PreviousStackTraceLogTypes[i]);
+                m_PreviousStackTraceLogTypes = null;
+            }
         }
 
         [ThreadStatic]

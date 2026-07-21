@@ -72,7 +72,8 @@ namespace WhiteSparrow.Shared.Logging
 			public readonly bool Hidden;
 			public readonly bool AllowFileInfo;
 
-			public FrameFormat(string signature, bool hidden, bool allowFileInfo)
+			public 
+        (string signature, bool hidden, bool allowFileInfo)
 			{
 				Signature = signature;
 				Hidden = hidden;
@@ -186,6 +187,15 @@ namespace WhiteSparrow.Shared.Logging
 
 			sb.Append(')');
 			return sb.ToString();
+		}
+
+		private static bool IsHidden(Type declaringType, System.Reflection.MethodBase method)
+		{
+			var ns = declaringType.Namespace;
+			if (ns != null && (ns == k_HiddenNamespace || ns.StartsWith(k_HiddenNamespace + ".", StringComparison.Ordinal)))
+				return true;
+
+			return method.IsDefined(typeof(HideInCallstackAttribute), false);
 		}
 
 		private static bool IsHidden(Type declaringType, System.Reflection.MethodBase method)
