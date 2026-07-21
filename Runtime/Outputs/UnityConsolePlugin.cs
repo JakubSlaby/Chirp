@@ -126,14 +126,25 @@ namespace WhiteSparrow.Shared.Logging.Outputs
             m_DefaultUnityLogHandler = null;
         }
 
+        // Sized to hold prefix + message + a typical stack trace in a single chunk. Clear() only
+        // takes its allocation-free fast path while the builder is still one chunk — once it has
+        // spilled, every Clear() allocates to collapse the chain back down, on every log. Same
+        // reasoning as k_StackTraceBuilderCapacity in LoggingStackTraceUtil, with room for the
+        // trace this builder appends on top of what that one produced.
+        private const int k_FormatBuilderCapacity = 4096;
+
         [ThreadStatic]
         private static StringBuilder s_HelperFormatBuilder;
-        private string FormatConsoleLog(ChirpLog logEvent, bool appendStackTrace)
+
+        // internal rather than private so the allocation tests can budget the formatting step on
+        // its own. Measuring it through Process would fold in Unity's console retention and the
+        // test framework's own per-log capture, neither of which Chirp controls.
+        internal string FormatConsoleLog(ChirpLog logEvent, bool appendStackTrace)
         {
             using var _ = s_FormatConsoleLogMarker.Auto();
 
             if (s_HelperFormatBuilder == null)
-                s_HelperFormatBuilder = new StringBuilder();
+                s_HelperFormatBuilder = new StringBuilder(k_FormatBuilderCapacity);
             else
                 s_HelperFormatBuilder.Clear();
 
