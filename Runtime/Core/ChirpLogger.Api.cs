@@ -79,7 +79,11 @@ namespace WhiteSparrow.Shared.Logging.Core
 		public void Assert(bool condition, ChirpLog log)
 		{
 			if (condition)
+			{
+				// The log was pre-constructed but will never be submitted — return it to the pool.
+				log.Dispose();
 				return;
+			}
 			Assert(log);
 		}
 		private void Assert(ChirpLog log)

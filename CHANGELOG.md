@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-07-13
+Allocation and string optimisation pass across the logging hot path. A plain `Chirp.Logger.Log("...")` submitted through the pipeline is now allocation-free on the library side.
+
+### Added
+- `ChirpLog` instances are now pooled (per-thread, safe for logging from any thread: main thread, Task thread pool, Unity job workers, UniTask continuations).
+- `ChirpLog.Copy()` — creates a non-pooled, caller-owned snapshot for outputs that need to retain log data beyond `Ingest()` (file writers, network batches).
+- Editor-only diagnostics: accessing a `ChirpLog` after it was released back to the pool logs an error pointing at `Copy()`. Zero cost in players.
+- `Tests/` assembly with per-shape allocation budget tests and markdown golden tests that pin parser output byte-for-byte against the previous implementation.
+- Console output routes through Unity's internal `DebugLogHandler.Internal_Log` via a cached reflection delegate. This gives a per-call `LogOption` (see Changed, below) and skips the full-message `string.Format` copy Unity's public `ILogHandler` API performs on every log. Falls back to the public API silently if the internal method is missing (see README for IL2CPP `link.xml` note).
+
+### Changed
+- **Lifetime contract**: a `ChirpLog` is valid only until `Submit` returns. `IChirpOutput` implementations must not retain instances beyond `Ingest()` — use `ChirpLog.Copy()`. (Retaining was never supported: previously `Submit` disposed and nulled the log immediately after dispatch.)
+- The `[<color=#…>Name</color>] ` channel prefix is now built once per `ChirpLogger` instead of being re-formatted on every log.
+- Markdown parser rewritten from Remove/Insert patching to single-pass cursor-walk emission — same output (golden-tested), a fraction of the intermediate string churn, and plain text without markdown characters now bypasses the regex entirely.
+- Code-block JSON pretty-printing is only attempted when the block content starts with `{` or `[` — non-JSON blocks no longer pay for a thrown `JsonReaderException` per log. (Bare JSON scalars in code blocks are no longer reformatted.)
+- Stack-trace formatter caches per-method signature fragments and avoids per-frame `Substring`/`Replace`/`int.ToString` allocations.
+- `ChirpLog.Context` now holds a strong reference for the (sub-millisecond) lifetime of the pooled log instead of allocating a `WeakReference` per contextful log.
+- Intercepted `Debug.Log(object)` calls skip the `string.Format` copy for the standard `"{0}"` format.
+
+### Removed
+- Finalizers on `ChirpLog` and `ChirpLogger` — every log no longer passes through the GC finalization queue.
+
 ## [0.12.0] - 2026-02-23
 Better handling of plugin lifecycles.
 ### Added
