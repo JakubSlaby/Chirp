@@ -280,11 +280,7 @@ namespace WhiteSparrow.Shared.Logging.Outputs
         {
             var log = ChirpLogUtil.ConstructLog(exception.Message, context);
             log.Source = m_Channel;
-#if UNITY_EDITOR
-            // Editor-only: lets the console render the exception natively. StackTrace below is
-            // always populated so text outputs (and player builds) still carry the trace.
             log.Exception = exception;
-#endif
             log.StackTrace = StackTraceUtility.ExtractStringFromException(exception);
             log.Level = LogLevel.Exception;
             m_Receiver.Submit(log);

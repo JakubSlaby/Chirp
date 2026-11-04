@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-11-04
+`ChirpLog.Exception` is now public and available in player builds, so outputs can forward the original exception.
+
+### Changed
+- `ChirpLog.Exception` has a public getter and is no longer compiled out of player builds. Outputs such as crash reporters can pass on the original exception, with its real type and inner exceptions, instead of rebuilding one from `Message` and `StackTrace`.
+- `ChirpLogger.Exception` and the intercepted `Debug.LogException` set `ChirpLog.Exception` in every build. Console output in player builds is unchanged.
+
 ## [0.13.0] - 2026-07-13
 Allocation and string optimisation pass across the logging hot path. A plain `Chirp.Logger.Log("...")` submitted through the pipeline is now allocation-free on the library side.
 

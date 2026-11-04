@@ -117,29 +117,27 @@ namespace WhiteSparrow.Shared.Logging
 			}
 		}
 
-#if UNITY_EDITOR
 		/// <summary>
-		/// Editor-only diagnostic: the exception a log was raised from, when it was raised from one.
-		/// UnityConsolePlugin hands it to Unity's native exception logger (throw-site trace,
-		/// error-pause, IDE linking). Compiled out of player builds — there the console renders the
-		/// exception as text from <see cref="StackTrace"/>, which the exception entry points
-		/// populate unconditionally. Null for ordinary logs.
+		/// The exception a log was raised from, when it was raised from one; null for ordinary logs.
+		/// Available in every build so outputs such as crash reporters can forward the original
+		/// exception with its real type and inner exceptions. In the editor UnityConsolePlugin also
+		/// hands it to Unity's native exception logger (throw-site trace, error-pause, IDE linking).
+		/// <see cref="StackTrace"/> still carries the trace as text for text-only outputs.
 		/// </summary>
-		internal Exception Exception
+		public Exception Exception
 		{
 			get
 			{
 				GuardReleased();
 				return m_Exception;
 			}
-			set
+			internal set
 			{
 				GuardReleased();
 				m_Exception = value;
 			}
 		}
 		private Exception m_Exception;
-#endif
 
 		public IChirpLogOptions Options => this;
 
@@ -166,9 +164,7 @@ namespace WhiteSparrow.Shared.Logging
 			copy.m_TimeStamp = m_TimeStamp;
 			copy.m_Source = m_Source;
 			copy.m_Context = m_Context;
-#if UNITY_EDITOR
 			copy.m_Exception = m_Exception;
-#endif
 			copy.m_HasMarkdown = m_HasMarkdown;
 			copy.m_AddStackTrace = m_AddStackTrace;
 			copy.m_IsObjectData = m_IsObjectData;
@@ -183,9 +179,7 @@ namespace WhiteSparrow.Shared.Logging
 			m_TimeStamp = default;
 			m_Source = null;
 			m_Context = null;
-#if UNITY_EDITOR
 			m_Exception = null;
-#endif
 			m_HasMarkdown = false;
 			m_AddStackTrace = false;
 			m_IsObjectData = false;
